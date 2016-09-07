@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+
+	<title>Installation - HyPhy</title>
+
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
+        <link href="../css/base.css" rel="stylesheet">
+        <link href="../assets/bass.css" rel="stylesheet">
+        <link href="../assets/github.css" rel="stylesheet">
+        <link href="../assets/style.css" rel="stylesheet">
+        <link href="../assets/fonts/source-code-pro/source-code-pro.css" rel="stylesheet">
+        <link href="../assets/fonts/source-sans-pro/source-sans-pro.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="..">HyPhy</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="..">Home</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../downloads/">Download</a>
+                </li>
+            
+            
+            
+                <li class="active">
+                    <a href="./">Installation</a>
+                </li>
+            
+            
+            
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tutorials <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        
+<li >
+    <a href="../tutorials/selection/README/">Selection</a>
+</li>
+
+                    
+                    </ul>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../datamonkey/">Datamonkey</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../support/">Support</a>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                <li >
+                    <a rel="next" href="../downloads/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../tutorials/selection/README/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#installation">Installation</a></li>
+        
+            <li><a href="#from-source">From Source</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="installation">Installation</h1>
+<h2 id="from-source">From Source</h2>
+<p>Hyphy depends on CMake for its build system.</p>
+<p>To install, make sure you have CMake &gt;3.0 installed. Hyphy is dependent on other development libraries like
+libcurl and libpthread. Libcurl requires development libraries such as crypto++ and openssl ( or gnutls depending on your configuration)
+On Ubuntu these are libcurl-dev, libcrypto++-dev and libssl-dev.</p>
+<p>You can download a specific release from this repository or if you prefer the master branch simply 
+clone the repo with</p>
+<p><code>git clone git@github.com:veg/hyphy.git</code></p>
+<p>Change your directory to the newly cloned directory</p>
+<p><code>cd hyphy</code></p>
+<p>Configure the project from the source directory using CMake.</p>
+<p><code>cmake .</code></p>
+<p>If you prefer to use other build systems, such as Xcode,
+configure using the -G switch</p>
+<p><code>cmake -G Xcode .</code></p>
+<p>CMake supports a number of build system generators,
+feel free to peruse these and use them if you wish.</p>
+<p>By default, HyPhy installs into <code>/usr/local</code>
+but it can be installed on any location of your system 
+by providing an installation prefix</p>
+<p><code>cmake -DINSTALL_PREFIX=/location/of/choice</code></p>
+<p>For example, this configuration will install hyphy at /opt/hyphy</p>
+<p><code>mkdir -p /opt/hyphy</code></p>
+<p><code>cmake -DINSTALL_PREFIX=/opt/hyphy .</code></p>
+<p>If you are on an OS X platform, you can specify which OS X SDK to use</p>
+<p><code>cmake -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.9.sdk/ .</code></p>
+<p>If you're on a UNIX-compatible system,
+and you're comfortable with GNU make,
+then run <code>make</code> with one of the following build targets:</p>
+<ul>
+<li>MAC - build a Mac Carbon application</li>
+<li>HYPHYGTK - HYPHY with GTK</li>
+<li>SP - build a HyPhy executable (HYPHYSP) without multiprocessing</li>
+<li>MP2 - build a HyPhy executable (HYPHYMP) using pthreads to do multiprocessing</li>
+<li>MPI - build a HyPhy executable (HYPHYMPI) using MPI to do multiprocessing</li>
+<li>HYPHYMPI - build a HyPhy executable (HYPHYMPI) using openMPI </li>
+<li>LIB - build a HyPhy library (libhyphy_mp) using pthreads to do multiprocessing</li>
+<li>GTEST - build HyPhy's gtest testing executable (HYPHYGTEST)</li>
+</ul>
+<p>For example to create a MPI build of HYPHY using openMPI ensure that you 
+have openmpi installed and available on your  path. You can check if this
+is the case after running 
+<code>cmake .</code> you should see something similar to this in your output</p>
+<p><code>-- Found MPI_C: /opt/scyld/openmpi/1.6.3/gnu/lib/libmpi.so;/usr/lib64/libibverbs.so;/usr/lib64/libdat.so;/usr/lib64/librt.so;/usr/lib64/libnsl.so;/usr/lib64/libutil.so;/usr/lib64/libm.so;/usr/lib64/libtorque.so;/usr/lib64/libm.so;/usr/lib64/libnuma.so;/usr/lib64/librt.so;/usr/lib64/libnsl.so;/usr/lib64/libutil.so;/usr/lib64/libm.so</code></p>
+<p><code>-- Found MPI_CXX: /opt/scyld/openmpi/1.6.3/gnu/lib/libmpi_cxx.so;/opt/scyld/openmpi/1.6.3/gnu/lib/libmpi.so;/usr/lib64/libibverbs.so;/usr/lib64/libdat.so;/usr/lib64/librt.so;/usr/lib64/libnsl.so;/usr/lib64/libutil.so;/usr/lib64/libm.so;/usr/lib64/libtorque.so;/usr/lib64/libm.so;/usr/lib64/libnuma.so;/usr/lib64/librt.so;/usr/lib64/libnsl.so;/usr/lib64/libutil.so;/usr/lib64/libm.so</code></p>
+<p>Then run </p>
+<p><code>make HYPHYMPI</code></p>
+<p>And then run make install to install the software</p>
+<p><code>make install</code></p>
+<ul>
+<li>HYPHYMP(I) will be installed at  <code>/location/of/choice/bin</code></li>
+<li>libhyphy_mp.(so/dylib/dll) will be installed at <code>/location/of/choice/lib</code></li>
+<li>HyPhy's standard library of batchfiles will go into <code>/location/of/choice/lib/hyphy</code></li>
+</ul>
+<p>HYPHYGTEST isn't installed normally,
+because it serves no utility outside of testing.</p>
+<p>To test HyPhy, build with the  GTEST target and run ./HYPHYGTEST from the source directory.
+<code>make GTEST</code>
+<code>./HYPHYGTEST</code></p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <center>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</center>
+        </footer>
+
+        <script src="../js/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/highlight.pack.js"></script>
+        <script>var base_url = '..';</script>
+        <script data-main="../mkdocs/js/search.js" src="../mkdocs/js/require.js"></script>
+        <script src="../js/base.js"></script>
+        <script src="../assets/anchor.js"></script>
+        <script src="../assets/site.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            From here you can search these documents. Enter
+                            your search terms below.
+                        </p>
+                        <form role="form">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                            </div>
+                        </form>
+                        <div id="mkdocs-search-results"></div>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

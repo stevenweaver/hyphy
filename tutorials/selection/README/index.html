@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+
+	<title>Selection - HyPhy</title>
+
+        <link href="../../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../../css/highlight.css">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link href="../../../assets/bass.css" rel="stylesheet">
+        <link href="../../../assets/github.css" rel="stylesheet">
+        <link href="../../../assets/style.css" rel="stylesheet">
+        <link href="../../../assets/fonts/source-code-pro/source-code-pro.css" rel="stylesheet">
+        <link href="../../../assets/fonts/source-sans-pro/source-sans-pro.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../../..">HyPhy</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="../../..">Home</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../../downloads/">Download</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../../installation/">Installation</a>
+                </li>
+            
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tutorials <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        
+<li class="active">
+    <a href="./">Selection</a>
+</li>
+
+                    
+                    </ul>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../../datamonkey/">Datamonkey</a>
+                </li>
+            
+            
+            
+                <li >
+                    <a href="../../../support/">Support</a>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                <li >
+                    <a rel="next" href="../../../installation/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../../../datamonkey/">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#selection-detection">Selection detection.</a></li>
+        
+            <li><a href="#estimate-alignment-wide">Estimate alignment-wide &omega;.</a></li>
+        
+            <li><a href="#run-alignment-wide-tests-for-episodic-diversification-busted">Run alignment-wide tests for episodic diversification (BUSTED).</a></li>
+        
+            <li><a href="#use-absrel-to-find-lineages-which-have-experienced-episodic-diversification">Use aBSREL to find lineages which have experienced episodic diversification.</a></li>
+        
+            <li><a href="#use-fubar-to-find-sites-which-have-experienced-pervasive-diversification">Use FUBAR to find sites which have experienced pervasive diversification.</a></li>
+        
+            <li><a href="#use-meme-to-find-sites-which-have-experienced-episodic-diversification">Use MEME to find sites which have experienced episodic diversification.</a></li>
+        
+            <li><a href="#use-relax-to-compare-selective-pressures-on-different-parts-of-the-tree">Use RELAX to compare selective pressures on different parts of the tree</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="selection-detection">Selection detection.</h1>
+<p><strong>Data files</strong></p>
+<p>All the example alignment files used here are available in this <a href="../data">data directory</a>.
+You may find it convenient to download the <a href="https://github.com/veg/hyphy-tutorials/blob/master/selection/data/files.zip?raw=true">zip file</a>
+with all the files from that directory, and unpack it on your machine.</p>
+<p><strong>Notation</strong></p>
+<p>We will use the following notation.</p>
+<ol>
+<li><code>filename</code> refers to a file on your local file system.</li>
+<li><strong>Option</strong> refers to an analysis option that you will select when prompted by HyPhy.</li>
+<li><em>Menu item</em> refers to a menu option you will select in the Mac OS X or Windows GUI (Graphical User Interface) version of HyPhy,
+or a command line you will supply in terminal with the command line version of HyPhy.</li>
+<li><tt>X</tt> refers to a model parameter X.</li>
+<li>The following formatting denotes text output to the screen by HyPhy.</li>
+</ol>
+<pre><code>[BUSTED] Selected 35 branches as the test (foreground) set: RABENSBURG_ISOLATE,WNFCG,SPU116_89,Node11,Node9,KUNCG,Node8,..
+[BUSTED] Obtaining initial branch lengths under the GTR model
+[BUSTED] Log(L) = -7745.475588071066
+[BUSTED] Fitting the unconstrained branch-site model
+</code></pre>
+
+<h2 id="estimate-alignment-wide">Estimate alignment-wide &omega;.</h2>
+<ol>
+<li>Select the appropriate analysis to run</li>
+<li><strong>[if using GUI]</strong> Choose <em>Analysis:Standard Analyses:Basic Analyses:AnalyzeCodonData.bf</em></li>
+</ol>
+<p><img alt="Selection diaglog" src="../images/GUI-dialog.png" />
+  * <strong>[if using CLI]</strong> When presented with the list of standard analysis options upon launch, choose <em>Basic Analyses</em>, then option 1 (<em>Analyse codon data with a variery of standard models using given tree.</em>)</p>
+<p><img alt="Selection in terminal" src="../images/CLI-dialog.png" /></p>
+<ol>
+<li><strong>Universal</strong> genetic code option</li>
+<li>The file to process</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>WestNileVirus_NS3.fas</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g.
+  <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas</code></li>
+<li><strong>MG94CUSTOMCF3X4</strong> model; the <a href="http://www.ncbi.nlm.nih.gov/pubmed/7968485">Muse Gaut 94</a> model with the <a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0011230">CF3x4</a> frequency estimator.</li>
+<li><strong>Global</strong> model parameter option; estimate rate parameters jointly from all sites and branches.</li>
+<li><strong>012345</strong> nucleotide substitution rates; estimate the general time reversible (GTR, 5 rates) model.</li>
+<li>Confirm that the tree included in the file will be used</li>
+<li>
+<p><strong>[GUI]</strong> Type <strong>y</strong> into the <strong>bottom box of the console window</strong> (see red box in the image) and hit "Enter"
+  <img alt="Entering text" src="../images/GUI-input.png" /></p>
+</li>
+<li>
+<p><strong>[CLI]</strong> Type <strong>y</strong> and hit "Enter"</p>
+</li>
+<li><strong>Estimate</strong> branch lengths directly</li>
+</ol>
+<p>The output should look like this</p>
+<pre><code>______________RESULTS______________
+Log Likelihood = -6413.50468184347;
+Shared Parameters:
+R=0.008557848966878849
+GT=0.2303600815210618
+CT=1.979989664067556
+CG=0.02076764883647483
+AC=0.2428440082030551
+AT=0.3056061615274677
+
+Tree givenTree=((((((HNY1999:0.001101787189557129,NY99_EQHS:0.00108698796444847)Node6:0,NY99_FLAMINGO:0)Node5:0,MEX03:0.003274397587748566)Node4:0.001043699094072735,IS_98:0.002238969679775947)Node3:0.0108106327401535,PAH001:0.009947231998139823)Node2:0.006480815229843424,AST99:0.01679372620666718,((((RABENSBURG_ISOLATE:1.05102590132809,(WNFCG:0.01053193289945618,SPU116_89:0.00569613982107767)Node19:0.507068944265484)Node17:0.5772661357618611,KUNCG:0.08756311980263866)Node16:0.06947527827356371,(ETHAN4766:0.02385184540957046,(CHIN_01:0.01206163326344818,EG101:0.01506055273715259)Node25:0.007681688497219724)Node23:0.003442808476468687)Node15:0.01851421610241251,(((ITALY_1998_EQUINE:0.009037431851104481,PAAN001:0.007872553578665653)Node30:0.002694356278175029,(RO97_50:0.001642931262019352,VLG_4:0.00108305411902561)Node33:0.002794580801147744)Node29:0.0007243769694723316,KN3829:0.003058011972423634)Node28:0.01097965849521703)Node14:0.00929314901848397);
+</code></pre>
+
+<p>The <tt>R</tt> parameter denotes the global &omega; (dN/dS) ratio and is the object of this analysis.</p>
+<h2 id="run-alignment-wide-tests-for-episodic-diversification-busted">Run alignment-wide tests for episodic diversification (BUSTED).</h2>
+<blockquote>
+<p>BUSTED is a method described in <a href="http://www.ncbi.nlm.nih.gov/pubmed/25701167">Murrell et al</a>. It has been extensively tested and shows better power and accuracy than either <a href="http://mbe.oxfordjournals.org/content/24/5/1219.short">"branch-site" models in PAML</a>, or the <a href="http://mbe.oxfordjournals.org/content/early/2013/10/16/molbev.mst198">"covarion" style models</a></p>
+</blockquote>
+<p>We will perform branch-site model-based tests for episodic selection affecting a proportion of sites in
+the alignment along a proportion of branches in the tree (i.e. is there evidence of selection <strong>anywhere</strong> in the alignment and <strong>anywhere</strong> on the tree).
+The data set in we are using includes partial clonal HIV-1 env sequences from epidemiologically linked partners (source and recipient)</p>
+<ol>
+<li>Select the appropriate analysis to run</li>
+<li><strong>[GUI]</strong> Choose <em>Analysis:Standard Analyses:Positive Selection:BUSTED.bf</em></li>
+<li><strong>[CLI]</strong> When presented with the list of standard analysis options upon launch, choose <em>Positive Selection</em>, then option 4 (<em>Run the Branch-site Unrestricted Statistical Test for Episodic Diversification to test for evidence of episodic alignment-wide selective pressure.</em>)</li>
+<li><strong>Universal</strong> genetic code option</li>
+<li>The file to process</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV.nex</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV.nex</code></li>
+<li>Confirm that the tree included in the file will be used</li>
+<li><strong>[GUI]</strong> Type <strong>y</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>y</strong> and hit Enter</li>
+<li>Choose all branches to include in the test (<strong>All</strong>)</li>
+<li><strong>[CLI]</strong> You will need to type <strong>d</strong> and hit "Enter" after selecting the <strong>All</strong> option to exit the selection dialog.</li>
+</ol>
+<p>The analysis will now run for a few minutes and produce the following output</p>
+<pre><code>[BUSTED] Selected 26 branches as the test (foreground) set: R20_239,R20_245,Node5,R20_240,R20_238,R20_242,Node4,R20_241,Node3,R20_243,Node2,R20_244,Node1,D20_233,D20_235,D20_236,D20_232,Node17,D20_234,D20_237,Node21,Node16,D20_230,D20_231,Node24,Node15 
+[BUSTED] Obtaining initial branch lengths under the GTR model 
+[BUSTED] Log(L) = -2114.132335772669 
+[BUSTED] Fitting the unconstrained branch-site model 
+[BUSTED] Log(L) = -2039.992959126133. Unrestricted class omega = 104.6591567580357 (weight = 0.02032866068122922) 
+[BUSTED] Fitting the branch-site model that disallows omega &gt; 1 among foreground branches 
+[BUSTED] Log(L) = -2076.666683221396 
+[BUSTED] Likelihood ratio test for episodic positive selection, p = 1.110223024625157e-16 
+</code></pre>
+
+<p>For example, in this case the analysis inferred that</p>
+<ol>
+<li>A proportion of sites (~0.02) is evolving with dN/dS &gt; 1 (~105) along a subset of the branches (it is not known which).</li>
+<li>Forcing dN/dS = 1 provides a significantly worse (p ~ 10<sup>-16</sup>) fit to the data, i.e. rejects the hypothesis of no positive selection in the alignment.</li>
+</ol>
+<p>In addition to this output, HyPhy will also generate a <a href="http://json.org">JSON</a> file with a more detailed analysis output. The JSON will be written to same directory as the input alignment file, with <code>BUSTED.json</code> appended to the file name, e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV.nex.BUSTED.json</code>  This JSON file can be visualized and explored with this <a href="http://veg.github.io/hyphy-vision/busted/">web app</a>, e.g., to obtain plots like those shown in the lecture slides.</p>
+<h3 id="run-busted-using-datamonkeyorg">Run BUSTED using datamonkey.org</h3>
+<ol>
+<li>Navigate to http://test.datamonkey.org, selected <em>BUSTED</em> from the <em>Methods and Tools</em> menu.</li>
+<li>Choose the file to analyze on the next screen.</li>
+<li>Use the analysis setup screen to select all the <code>donor</code> branches as the foreground (shift-click on the branches to add them to selection)
+<img alt="BUSTED datamonkey" src="../images/busted-datamonkey.png" /></li>
+<li>As the analysis runs, you will see a progress page looking something  like this
+<img alt="BUSTED datamonkey progess" src="../images/busted-datamonkey-progress.png" /></li>
+<li>When the analysis finishes, you will be directed to a results page, which is very similar to the web app referenced above</li>
+</ol>
+<h3 id="testing-for-selection-on-an-a-priori-specified-set-of-branches">Testing for selection on an <em>a priori</em> specified set of branches</h3>
+<p>The tree in the <code>HIV.nex</code> is annotated with {} to indicate the set of test ("foreground") branches (e.g. you can use this <a href="http://veg.github.io/phylotree.js/">widget</a> to select foreground
+branches and then export them to Newick using the <em>Newick:Export</em> menu dialog).</p>
+<p>in this case the branch being tested is the <em>transmission</em> branch, i.e. the one separating the source and the recipient in the phylogenetic tree.
+BUSTED will only constrain &omega; &lt; 1 on these branches (allowing the rest of the tree to have its own &omega; distribution) during testing.</p>
+<p>An annotated Newick string looks like this (a single branch):</p>
+<blockquote>
+<p>((((((R20_239:0.001179071552709126,R20_245:0.003569393318767422):0.002373643652152119,R20_240:0.00354445225954759,
+R20_238:0,R20_242:0.007143686359514547):0.001169032517101171,R20_241:0.003555888002841892):0.001829250056707198,
+R20_243:0.006486065374683752):0.003845820830922537,R20_244:0.02113434306810657)<strong>{Test}</strong>:0.03269082780807394,
+D20_233:0.02550919363771013,(((D20_235:0,D20_236:0,D20_232:0):0.006433904687642939,
+(D20_234:0,D20_237:0):0.005843978498632621):0.01022675723558638,
+(D20_230:0.02979851732996924,D20_231:0.006905678660095517):0.02444611465196596):0.005946252173834307);</p>
+</blockquote>
+<p>Repeat the analysis from the previous section, choosing option 4 (<strong>Set Test</strong>) in step 5.
+Note that you could also manually select the set of branches to test in the same dialog.</p>
+<p>The results of this <em>a priori</em> analysis are</p>
+<pre><code>[BUSTED] Selected 1 branches as the test (foreground) set: Node1 
+[BUSTED] Obtaining initial branch lengths under the GTR model 
+[BUSTED] Log(L) = -2114.13233621422 
+[BUSTED] Fitting the unconstrained branch-site model 
+[BUSTED] Log(L) = -2031.302017161514. Unrestricted class omega = 524.9720891747666 (weight = 0.07815647810018292) 
+[BUSTED] Fitting the branch-site model that disallows omega &gt; 1 among foreground branches 
+[BUSTED] Log(L) = -2050.101940483789 
+[BUSTED] Likelihood ratio test for episodic positive selection, p = 6.843795752331516e-09 
+</code></pre>
+
+<h4 id="questions">Questions.</h4>
+<ol>
+<li>Use the <a href="http://veg.github.io/hyphy-vision/busted/">web app</a> to visualize the JSON result file from this analysis and
+compare the inferred &omega; distributions for the foreground and background branches.</li>
+<li>Explain why the log-likelihood for the unconstrained model is higher for the case when <em>a priori</em> branches are tested?</li>
+<li>Do these results suggest that the transmission branch is evolving differently from the rest of the tree?</li>
+<li>If the <em>a priori</em> analysis had a negative result (no selection along the transmission branch), might it still be possible to
+find evidence of selection in the <strong>All</strong> branches analysis?</li>
+</ol>
+<h2 id="use-absrel-to-find-lineages-which-have-experienced-episodic-diversification">Use aBSREL to find lineages which have experienced episodic diversification.</h2>
+<blockquote>
+<p>aBSREL is a method described in <a href="http://www.ncbi.nlm.nih.gov/pubmed/25697341">Smith et al</a>. It is an extension of our popular <a href="http://www.ncbi.nlm.nih.gov/pubmed/21670087">BS-REL model</a>, which performs a complexity analysis and model selection prior to doing hypothesis testing. It runs much faster than BS-REL and has better statistical properies.</p>
+</blockquote>
+<p>We continue using the <code>HIV.nex</code> dataset from the previous example, but now we are interested in scanning the phylogeny
+for all the branches where selection may have operated.</p>
+<ol>
+<li>Select the appropriate analysis to run</li>
+<li><strong>[GUI]</strong> Choose <em>Analysis:Standard Analyses:Positive Selection:BranchSiteREL.bf</em></li>
+<li><strong>[CLI]</strong> When presented with the list of standard analysis options upon launch, choose <em>Positive Selection</em>, then option 1 (<em>Use the random effects branch-site model (2010) to find lineages subject to episodic selection.</em>)</li>
+<li><strong>Universal</strong> genetic code option</li>
+<li><strong>Yes</strong> to choose the adaptive version of BSREL.</li>
+<li><strong>No</strong> to assume that synonymous rates do not vary from site to site</li>
+<li>The file to process</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV.nex'</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV.nex</code></li>
+<li>Decline to use the tree included in the file (annotation from the previous step conflicts with the current aBSREL implementaton)</li>
+<li><strong>[GUI]</strong> Type <strong>n</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>n</strong> and hit Enter</li>
+<li>Choose the tree file</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV.nwk'</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV.nwk</code></li>
+<li>Choose all branches to test (<strong>All</strong>)</li>
+<li><strong>[CLI]</strong> You will need to type <strong>d</strong> and hit Enter after selecting the <strong>All</strong> option to exit the selection dialog.</li>
+<li>Where to save the analysis results (more than one file, see below)</li>
+<li><strong>[GUI]</strong> In the file dialog, find a place to save the result file, naming it <code>HIV.aBSREL</code>.</li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV.aBSREL</code></li>
+</ol>
+<p>The analysis will now run for several minutes and produce a lot of diagnostic output.</p>
+<p>As the initial phase, aBSREL fits the standard Muse-Gaut 94 model which estimates a single &omega; for each branch and prints out model fit statistics. This is the simplest model that can be selected by aBSREL.</p>
+<pre><code>[PHASE 0] Fitting the local MG94 (no site-to-site variation) to obtain initial parameter estimates
+
+Log L = -2069.673153141118 with 66 degrees of freedom. IC = 4273.293894919101
+
+Branch omega values
+
+    Count    = 26
+    Mean     = 5.015163008040247
+    Median   = 1.911847453671735
+    Variance = 20.26898469566522
+    Std.Dev  = 4.502108916459621
+    COV      = 0.8976994185915583
+    Sum      = 130.3942382090464
+    Sq. sum  = 1160.672977319228
+    Skewness = 0.8547462897381892
+    Kurtosis = 58.55544061358484
+    Min      = 0.1474879956566399
+    2.5%     = 0.1474879956566399
+    97.5%    = 10
+    Max      = 10
+</code></pre>
+
+<p>Next, aBSREL sorts all the branches by length (longest first), and tries to greedily add &omega; categories to one branch at a time, until the addition is no longer justified by AIC<sub>c</sub> scores. For example, for <em>Node1</em> (the transmission branch)</p>
+<pre><code>[PHASE 1] Fitting Branch Site REL models to one branch at a time
+
+[PHASE 1] Branch Node1 log(L) = -2048.380, IC = 4234.826
+    2 rate classes
+    Node: mixtureTree.Node1
+    Length parameter = 0.01335020389229876
+    Class 1
+        omega = 0.736
+        weight = 0.927
+    Class 2
+        omega = 499.798
+        weight = 0.073
+
+[PHASE 1] Branch Node1 log(L) = -2048.447423263603, IC = 4239.085721554758
+    3 rate classes
+    Node: mixtureTree.Node1
+    Length parameter = 0.0194263003300435
+    Class 1
+        omega = 0.385
+        weight = 0.925
+    Class 2
+        omega = 0.000
+        weight = 0.000
+    Class 3
+        omega = 314.702
+        weight = 0.075
+</code></pre>
+
+<p>using two rate classes improves the IC from 4273.3 to 4234.83, but going to three rate classes is not justified. aBSREL will now fix a 2-bin &omega; distribution for <tt>Node1</tt> and move to the next branch. When all branches are done, a summary of inferred model complexity will be printed to the screen.</p>
+<pre><code>[INFERRED MODEL COMPLEXITY]
+    mixtureTree.R20_239 has 1 site rate classes
+    mixtureTree.R20_245 has 1 site rate classes
+    mixtureTree.Node5 has 1 site rate classes
+    mixtureTree.R20_240 has 1 site rate classes
+    mixtureTree.R20_238 has 1 site rate classes
+    mixtureTree.R20_242 has 1 site rate classes
+    mixtureTree.Node4 has 1 site rate classes
+    mixtureTree.R20_241 has 1 site rate classes
+    mixtureTree.Node3 has 1 site rate classes
+    mixtureTree.R20_243 has 1 site rate classes
+    mixtureTree.Node2 has 1 site rate classes
+    mixtureTree.R20_244 has 1 site rate classes
+    mixtureTree.Node1 has 2 site rate classes
+    mixtureTree.D20_233 has 2 site rate classes
+    mixtureTree.D20_235 has 1 site rate classes
+    mixtureTree.D20_236 has 1 site rate classes
+    mixtureTree.D20_232 has 1 site rate classes
+    mixtureTree.Node17 has 1 site rate classes
+    mixtureTree.D20_234 has 1 site rate classes
+    mixtureTree.D20_237 has 1 site rate classes
+    mixtureTree.Node21 has 1 site rate classes
+    mixtureTree.Node16 has 2 site rate classes
+    mixtureTree.D20_230 has 2 site rate classes
+    mixtureTree.D20_231 has 1 site rate classes
+    mixtureTree.Node24 has 2 site rate classes
+    mixtureTree.Node15 has 1 site rate classes
+</code></pre>
+
+<p>Note that only a few branches support 2 &omega; classes, and the majority are well-explained without any site-to-site variation.
+In the next phase, aBSREL optimizes all parameters in the just inferred model model</p>
+<pre><code>[PHASE 2] Fitting the full LOCAL alternative model (no constraints)
+
+Log L = -2010.471450731734 with 76 degrees of freedom, IC = 4175.52599570315
+((((((R20_239:0.001180872214151883,R20_245:0.003568958594949872)Node5:0.00238190144130175,R20_240:0.003553829750818045,R20_238:0,R20_242:0.00716830032133561)Node4:0.001173481128053423,R20_241:0.003576676330678178)Node3:0.00155544697576297,R20_243:0.006756755941630225)Node2:0.00415900454948532,R20_244:0.02082000515352331)Node1:0.2905921716926325,D20_233:1.951982256546112,(((D20_235:0,D20_236:0,D20_232:0)Node17:0.006441027083836533,(D20_234:0,D20_237:0)Node21:0.005840812770752585)Node16:0.2538902924947701,(D20_230:1.765119288716005,D20_231:0.007781540968601186)Node24:0.02458866035691175)Node15:0)
+
+</code></pre>
+
+<p>Next, the analysis will proceed to test all the branches we selected in step 8 (which is <em>All</em>) to see if there is a proportion of sites
+with &omega; &gt; 1 along that branch, and whose removal would cause a significant drop in log-likelihood. As a shortcut, if the branch has no sites with &omega; &gt; 1, it will not be tested (one can just set the p-value to 0.5).</p>
+<p>This is the most time consuming phase of the analysis. As the tests are done, aBSREL will print out a running tally to the screen, including the rate distribution inferred for a particular branch under the null (&omega; &le; 1) model, and the p-value for the branch. For example, the snippet below shows the alternative and null distributions of &omega; along Node1 (the same branch we tested with BUSTED previously), and reports the <em>uncorrected</em> p-value for the test of selection at this branch.</p>
+<pre><code>Node: mixtureTree.Node1
+    Length parameter = 0.02933683537846648
+    Class 1
+        omega = 0.872
+        weight = 0.932
+    Class 2
+        omega = 751.770
+        weight = 0.068
+...Testing for selection at this branch
+
+Node: mixtureTree.Node1
+    Length parameter = 0.08668188509082339
+    Class 1
+        omega = 0.816
+        weight = 0.000
+    Class 2
+        omega = 1.000
+        weight = 1.000
+p-value = 9.103440223867665e-12
+
+</code></pre>
+
+<p>Once all the tests have been done, aBSREL will print out the list of all branches with p-values below 0.05 <strong>after</strong>
+applying the <a href="http://en.wikipedia.org/wiki/Holm–Bonferroni_method">Holm-Bonferroni multiple testing correction</a>, and a CPU time report.</p>
+<pre><code>Summary of branches under episodic selection (26 were tested, of which 14 required optimizations) :
+    Node1 p = 2.45792886044427e-10
+    D20_233 p = 0.0001215300920816009
+    Node16 p = 0.0002149117196342809
+
+
+ === CPU TIME REPORT === 
+    MG94 model fit : 00:00:05
+    Rate class complexity analysis : 00:00:33
+    aBSREL model fit : 00:00:07
+    Individual branch selection testing : 00:01:29
+    Total time : 00:02:43
+</code></pre>
+
+<p>Output files generated by aBSREL will all be of the form <code>PREFIX.extension</code> where PREFIX is whatever you chose in step 9 above.</p>
+<ul>
+<li><code>PREFIX.mglocal.fit</code> : a HyPhy batch file containing the model fit (including all parameter estimates) of PHASE 0 (only branch variation). This is a NEXUS file with a private NEXUS HYPHY block.</li>
+<li><code>PREFIX.fit</code> : a HyPhy batch file containing the model fit (including all parameter estimates) of PHASE 2 (unconstrained branch-site model). This is a NEXUS file with a private NEXUS HYPHY block.</li>
+<li><code>PREFIX.json</code>: a JSON file storing all the relevant analysis output, it can be visualized with this <a href="http://veg.github.io/hyphy-vision/absrel/">web app</a></li>
+<li><code>PREFIX</code>: a CSV file containing branch-by-branch output (similar to what is shown in the <em>Table</em> tab of the web app)</li>
+</ul>
+<h3 id="questions_1">Questions.</h3>
+<ol>
+<li>Which model (aBSREL or BUSTED) provides a better fit to the data, based on AIC<sub>c</sub> (the web apps report AIC<sub>c</sub> in the summary table)? </li>
+<li>Compare the &omega; distributions inferred for Node1 (the transmission branch) by BUSTED with the <em>a priori</em> branch selection, and by aBSREL. If they differ, can you identify some of the key differences between the models that could explain the difference?</li>
+<li>Use the <a href="http://veg.github.io/hyphy-vision/absrel/">web app</a> to compare the list of branches which would have p-values &le; 0.05 without the multiple test correction. Are the lists notably different?</li>
+</ol>
+<h2 id="use-fubar-to-find-sites-which-have-experienced-pervasive-diversification">Use FUBAR to find sites which have experienced pervasive diversification.</h2>
+<blockquote>
+<p>FUBAR is described in <a href="http://mbe.oxfordjournals.org/content/30/5/1196">Murrell et al</a> which is intended to supersede (by dint of its speed and statistical performance), previous REL and FEL methods.</p>
+</blockquote>
+<p>We will use the <code>WestNileVirus_NS3.fas</code> dataset to identify individual sites which have experienced pervasive diversification over the entire tree. An analysis by <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2291521/">Brault et al</a> using our older counting method (SLAC),
+found a single site (249) subject to positive selection.</p>
+<ol>
+<li>Select the appropriate analysis to run</li>
+<li><strong>[GUI]</strong> Choose <em>Analysis:Standard Analyses:Selection/Recombination:FUBAR.bf</em></li>
+<li><strong>[CLI]</strong> When presented with the list of standard analysis options upon launch, choose <em>Selection/Recombination</em>, then option 1 (<em>Detect site-specific pervasive diversifying and purifying selection using the FUBAR (Fast Unbiased Bayesian AppRoximate) method on a multiple partition data set, e.g. produced by GARD.</em>). Note that, as suggested by the text, FUBAR can account for the confounding effect of recombination.</li>
+<li><strong>Universal</strong> genetic code option</li>
+<li><strong>1</strong> to specify that a single partition is being analyzed (you could specify more to correct for recombination).</li>
+<li>Confirm that the tree included in the file will be used</li>
+<li><strong>[GUI]</strong> Type <strong>y</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>y</strong> and hit Enter</li>
+<li>The file to process</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV.nex'</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data//WestNileVirus_NS3.fas</code>. The analysis will now begin running (see output below but more propmts await). As BUSTED and aBSREL, FUBAR will write a number of <code>PREFIX.exention</code> files to disk. <code>PREFIX</code> is the path to the alignment file in this case, and the context of h</li>
+<li>Choose N to define an NxN grid (use the default 20)</li>
+<li><strong>[GUI]</strong> Type <strong>20</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>20</strong> and hit Enter</li>
+<li>Choose the number of MCMC chains to run (use <strong>3</strong>)</li>
+<li>Specify Markov chain parameters (use suggested defaults, i.e., <strong>2000000</strong>, <strong>1000000</strong>, <strong>100</strong>, <strong>0.05</strong>)</li>
+<li><strong>[GUI]</strong> Type <strong>3</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>3</strong> and hit Enter</li>
+</ol>
+<p>Output after Step 5</p>
+<pre><code>FUBAR will write intermediate and result files to
+/Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas.extension
+
+[FUBAR PHASE 1] Optimizing relative branch lengths under the nucleotide REV model
+[FUBAR PHASE 1 FINISHED] log(L) = -7745.475468266388
+    Length of tree 1 (substitutions/site) = 0.6721285491158012
+[DIAGNOSTIC] FUBAR wrote the self-contained nucleotide fit file to /Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas.gtr_fit
+</code></pre>
+
+<p>Output after Step 6</p>
+<pre><code>[DIAGNOSTIC] FUBAR will use a 20X20 grid
+[FUBAR PHASE 2] Determining appropriate branch scaling using the 20X20 grid points.
+Computing the likelihood function on grid points 400/400 00:00:02   Best scaling achieved for dN/dS =  0.03.
+    Computing site-by-site likelihoods at 20X20 grid points
+Computing the likelihood function on grid points 400/400 00:00:03   Finished with likelihood calculations. Achieved throughput of  66.67 calculations/second
+[DIAGNOSTIC] FUBAR wrote the self-contained codon fit file to /Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas.codon_fit
+[DIAGNOSTIC] FUBAR wrote the the site likelihoods file to /Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas.grid_info
+</code></pre>
+
+<p>Output after Step 8</p>
+<pre><code>[FUBAR PHASE 3] Running an MCMC chain (ID 0) to obtain a posterior sample of grid point weights: 2000000 total steps, of which 1000000 will be discarded as burn-in, and sampling every 10000 steps. Dirichlet prior concentration parameter = 0.5.
+Running MCMC chain ID 0. Current step: 2000000/2000000. Mean sampled log(L) = -6619.31564200728. Acceptance rate = 0.03111951555975778
+[FUBAR PHASE 3] Running an MCMC chain (ID 1) to obtain a posterior sample of grid point weights: 2000000 total steps, of which 1000000 will be discarded as burn-in, and sampling every 10000 steps. Dirichlet prior concentration parameter = 0.5.
+Running MCMC chain ID 1. Current step: 2000000/2000000. Mean sampled log(L) = -6619.258683970502. Acceptance rate = 0.03157801578900789
+[FUBAR PHASE 3] Running an MCMC chain (ID 2) to obtain a posterior sample of grid point weights: 2000000 total steps, of which 1000000 will be discarded as burn-in, and sampling every 10000 steps. Dirichlet prior concentration parameter = 0.5.
+Running MCMC chain ID 2. Current step: 2000000/2000000. Mean sampled log(L) = -6620.143375380813. Acceptance rate = 0.03128851564425782
+[FUBAR PHASE 3 DONE] Finished running the MCMC chains; drew 3x100 samples from chains of length 2000000 after discarding 1000000 burn-in steps. Achieved throughput of 125000 moves/sec.
+
+[DIAGNOSTIC] FUBAR wrote samples from 3 independent chains to /Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas.samples[0-2]
+
+
+Tabulating results for site 618/619 00:00:01
+[DIAGNOSTIC] FUBAR wrote the results of its analysis to /Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas.fubar.csv
+</code></pre>
+
+<p>Final results</p>
+<pre><code>[RESULTS] At posterior probability &gt;= 0.9 there were 1 sites under diversifying positive selection, of which  0.01 [0 - 0] are expected to be false positives.
+
+Codon   Prob[dN/dS&gt;1]   EBF[dN/dS]&gt;1    PSRF    N_eff
+249 0.9877421834151304  562.1145080622537   1.063515998847144   24.05393297483982
+</code></pre>
+
+<h3 id="questions_2">Questions</h3>
+<ol>
+<li>Try the same analysis with different grid sizes (5,10,30).</li>
+<li>How do the run times change?</li>
+<li>Are the results robust to the choice of N?</li>
+<li>Run FUBAR with using the same settings on a large HIV RT dataset (&gt;400 sequences) <code>HIV_RT.nex</code>, which was previously analyzed by us using a [dedicated method for finding directional selection, MEDS] (http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002507).</li>
+<li>How does FUBAR time scale with the number of sequences?</li>
+<li>How does the list of sites found by FUBAR compare with the MEDS paper?</li>
+<li>And with the list of sites known for their as resistance associated for <a href="http://hivdb.stanford.edu/DR/NNRTIResiNote.html">NNRTI</a> and <a href="http://hivdb.stanford.edu/DR/NRTIResiNote.html">NRTI</a>?</li>
+<li>Explore the effect of correcting for recombination with partitioning, by running FUBAR on <code>CVV_G.fas</code> [no partitioning] and <code>CVV_G_GARD.nex</code> [partitioning into non-recombinant fragments using GARD]. How different are the lists of sites produced by the analyses?</li>
+</ol>
+<h2 id="use-meme-to-find-sites-which-have-experienced-episodic-diversification">Use MEME to find sites which have experienced episodic diversification.</h2>
+<blockquote>
+<p>MEME is a <a href="http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1002764">published method</a> which is our default recommendation for finding individual sites under selection. It is MUCH slower than FUBAR, however, so there's room for both.</p>
+</blockquote>
+<p>We continue to use the <code>WestNileVirus_NS3.fas</code> dataset from the previous example, to find sites where selection operated along a subset of branches, while the rest of the tree may have been strongly conserved (in <strong>addition</strong> to the type of sites found by FUBAR).</p>
+<p>MEME tests each individual site separately; it runs quite slowly on a desktop, but very quickly on a cluster. You may also run MEME on <a href="../www.datamonkey.org">datamonkey</a> to speed up the process. MEME requires a lot of user input (this is a legacy issue and will be addressed in the upcoming HyPhy v3 release).</p>
+<ol>
+<li>Select the appropriate analysis to run</li>
+<li><strong>[GUI]</strong> Choose <em>Analysis:Standard Analyses:Selection:QuickSelectionDetection.bf</em></li>
+<li><strong>[CLI]</strong> When presented with the list of standard analysis options upon launch, choose <em>Positive Selection</em> (10), then option 9 (<em>Quickly test for positive selection using several approaches.</em>).</li>
+<li><strong>Universal</strong> genetic code option</li>
+<li><strong>New analysis</strong></li>
+<li>The file to process</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV.nex'</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3.fas</code>.</li>
+<li><strong>012345</strong> (GTR combined with the codon model)</li>
+<li>Confirm that the tree included in the file will be used</li>
+<li><strong>[GUI]</strong> Type <strong>y</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>y</strong> and hit Enter</li>
+<li>Save nucleotide model fit to <code>PREFIX.gtr</code>. We'll replace PREFIX with somewhere on the file system you wish to save the results to, e.g., <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3_meme</code></li>
+<li><strong>Estimate dN/dS only</strong></li>
+<li><strong>MEME</strong> (HyPhy will start running the analysis now)</li>
+<li><strong>0.1</strong> for the p-value (MEME is a conservative test on small alignments)</li>
+<li><strong>N</strong> (do not save fit files for individual codons)</li>
+<li>[This prompt will appear <strong>after</strong> the analysis is finished] Save the CSV file with analysis results to <code>PREFIX.csv</code>, e.g., <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/WestNileVirus_NS3_meme</code></li>
+</ol>
+<p>Output after step 8</p>
+<pre><code>Phase 1:Nucleotide Model (012345) Model Fit
+
+
+-7745.47549841979
+
+Phase 2:MG94x(012345) Model Fit
+
+
+
+Phase 3:Estimating dN/dS
+
+
+Nuc-&gt;codon scaling factor:3.091598974159624
+Raw scaling factor:3.091598974159624
+Tree scaling factor(S): 1
+
+Using dN/dS=0.02681098065530952
+Codon model:-6564.63922229292
+
+Phase 4: Ancestral State Reconstruction and Counting
+</code></pre>
+
+<p>After step 10, for each codon, a line like this will be printed (this will also be saved to the final CSV file).</p>
+<pre><code>| Codon:  249| Beta1:       0.86| P(Beta1):  0.00| Beta2:       2.50| P(Beta2):  1.00| alpha:       0.00| LRT:   7.62| p:  0.01| Log(L): -33.85 *P
+</code></pre>
+
+<ul>
+<li>&alpha; is the estimate for the synonymous rate at this site shared by all branches</li>
+<li>&beta;1 is the estimate for the first non-synonymous rate; by definition &beta;1 &le; &alpha;</li>
+<li>P(&beta;1) is the proportion of branches at that site which are estimated to evolve with with &beta;1</li>
+<li>&beta;2 is the estimate for the second non-synonymous rate; &beta;2 is unconstrained</li>
+<li>P(&beta;2) is the proportion of branches at that site which are estimated to evolve with with &beta;2</li>
+<li>LRT is the likelihood ratio test statistic obtained relative to the null which sets &beta;2  &le; &alpha;</li>
+<li>p is the p-value for positive selection at this site</li>
+<li>if *P is displayed at the end of the line, the p-value is at or below the threshold chosen in step 9.</li>
+</ul>
+<h3 id="questions_3">Questions</h3>
+<ol>
+<li>Find sites detected as selected by MEME, but not by FUBAR. What makes them different from those which are detected by both methods?</li>
+<li>Using R (or another data analysis package), plot how LRT (or p-value) varies over sites.</li>
+<li>Is <code>(1-p)</code> [p-value] of MEME correlated with the posterior probability of positive selection derived by FUBAR (use a non-parametric association test, e.g. rank correlation)? Use the CSV files generated by each analysis to import the results into a statistical package for analysis.</li>
+</ol>
+<h2 id="use-relax-to-compare-selective-pressures-on-different-parts-of-the-tree">Use RELAX to compare selective pressures on different parts of the tree</h2>
+<blockquote>
+<p>RELAX is a method described in <a href="http://www.ncbi.nlm.nih.gov/pubmed/25540451">Wertheim et al</a>. It is based on the <a href="http://www.ncbi.nlm.nih.gov/pubmed/21670087">BS-REL model</a> branch site framework, but the tree is partitioned (a priori) into non-overlapping sets of branches, and the separate distributions of &omega; are fitted to each set and compared for relative <em>relaxation</em> (&omega; values contract to 1) or <em>intensification</em> (&omega; values move away from 1).</p>
+</blockquote>
+<p>We continue using the <code>HIV.nex</code> dataset, and are now interested in seeing if natural selection in the recipient (<code>R</code> branches) and the donor (<code>D</code> branches) operate at different intensities.</p>
+<ol>
+<li>Select the appropriate analysis to run</li>
+<li><strong>[GUI]</strong> Choose <em>Analysis:Standard Analyses:Positive Selection:RELAX.bf</em></li>
+<li><strong>[CLI]</strong> When presented with the list of standard analysis options upon launch, choose <em>Positive Selection</em>, then option 10 (<em>Test whether selected branches are under relaxed or intensified selection against reference branches.</em>)</li>
+<li><strong>Universal</strong> genetic code option</li>
+<li>The file to process</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV.nex</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV.nex</code></li>
+<li>Decline to use the tree included in the file (we will use a tree with different branch annotation)</li>
+<li><strong>[GUI]</strong> Type <strong>n</strong> into the bottom box of the console window and hit Enter</li>
+<li><strong>[CLI]</strong> Type <strong>n</strong> and hit Enter</li>
+<li>Choose the tree file</li>
+<li><strong>[GUI]</strong> In the file dialog, navigate to and select <code>HIV-relax.nwk'</code></li>
+<li><strong>[CLI]</strong> Input the full path name to the file (make sure there is no trailing space), e.g. <code>/Users/sergei/Coding/hyphy-tutorials/selection/data/HIV-relax.nwk</code></li>
+<li>Select the <strong>test</strong> set of branches</li>
+<li><strong>[GUI]</strong> Choose <em>Recipient</em> </li>
+<li><strong>[CLI]</strong> Choose option 3 (<em>Recipient</em>)</li>
+<li>Select the <strong>reference</strong> set of branches</li>
+<li><strong>[GUI]</strong> Choose <em>Donor</em> </li>
+<li><strong>[CLI]</strong> Choose option 2 (<em>Donor</em>)</li>
+<li>Select analysis type (selecting <em>Minimal</em> will greatly reduce run time)</li>
+<li><strong>[GUI]</strong> Choose <em>Minimal</em> </li>
+<li><strong>[CLI]</strong> Choose option 2 (<em>Minimal</em>)</li>
+</ol>
+<p>The output of the analysis will look like </p>
+<pre><code>[RELAX] Obtaining branch lengths under the GTR model 
+[RELAX] Log(L) = -2114.132338088236 
+[RELAX] Obtaining omega and branch length estimates under the partitioned MG94xGTR model 
+[RELAX] Log(L) = -2076.093223041783 
+[RELAX] Fitting the RELAX null model 
+[RELAX] Log(L) = -2031.204697143867 
+[RELAX] Fitting the RELAX alternative model 
+[RELAX] Log(L) = -2024.075837744705. Relaxation parameter K = 0.4389230603260226 
+[RELAX] Likelihood ratio test for relaxation on Test branches, p = 0.0001594057084282063 
+</code></pre>
+
+<p>The result of the analysis is that "Test" (recipient) branches have &omega; that scales like &omega; <sup>K</sup>, where <strong>K</strong> is 0.4389, i.e., shrink towards 1 (selection is weaker). The likelihood ratio test is to reject <strong>K=1</strong> (no difference is selective pressure), which yields a highly significant p = 0.00016 here.</p>
+<p>Like in other analyses, HyPhy will generate a JSON file (e.g., <code>HIV.nex.RELAX.json</code>) storing all the relevant analysis output, which can be visualized with this <a href="http://veg.github.io/hyphy-vision/relax/">web app</a>. For example, you can see the fitted rate distributions.</p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <center>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</center>
+        </footer>
+
+        <script src="../../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../../js/highlight.pack.js"></script>
+        <script>var base_url = '../../..';</script>
+        <script data-main="../../../mkdocs/js/search.js" src="../../../mkdocs/js/require.js"></script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../assets/anchor.js"></script>
+        <script src="../../../assets/site.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            From here you can search these documents. Enter
+                            your search terms below.
+                        </p>
+                        <form role="form">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                            </div>
+                        </form>
+                        <div id="mkdocs-search-results"></div>
+                    </div>
+                    <div class="modal-footer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
