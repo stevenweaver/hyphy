@@ -181,33 +181,32 @@ io.ReportProgressMessageMD ("Protein GTR Fitter", " * Initial branch length fit"
 *****************************************************************/
 console.log("\n\n[PHASE 2] Performing initial REV fit to the data");
 
-
- 
-
 result_key = protein_gtr.rev_phase_prefix + protein_gtr.fit_phase;
 protein_gtr.startTimer (protein_gtr.timers, result_key);
 protein_gtr.timer_count +=1;
 
 current = utility.Map (utility.Filter (protein_gtr.analysis_results, "_value_", "_value_/'" + protein_gtr.baseline_phase + "'"), "_value_", "_value_['" + protein_gtr.baseline_phase + "']");
-// console.log(utility.Keys(protein_gtr.analysis_results));
-// {
-// {"options", "input", "0", "1"}
-// }
-// 
-// console.log(utility.Keys(protein_gtr.analysis_results["0"]));
-// {
-// {"input", "Baseline Phase"}
-// }
-//console.log(current);
-// 0:
-///EFV
-/// BL
-/// Trees
-/// logl
-///parameters
-// 1: ....
+protein_gtr.current_gtr_fit = protein_gtr.fitGTRtoFileList (current, None, protein_gtr.final_phase, TRUE);
 
-protein_gtr.current_gtr_fit = protein_gtr.fitGTRtoFileList (current, None, result_key, FALSE); // last is bool argument, finalphase
+ 
+protein_gtr.stopTimer (protein_gtr.timers, protein_gtr.final_phase);
+
+
+
+
+
+
+/* Save the JSON */
+protein_gtr.stopTimer (protein_gtr.timers, "Total time");
+protein_gtr.analysis_results[terms.json.timers] = protein_gtr.timers;
+io.SpoolJSON(protein_gtr.analysis_results, protein_gtr.json_file);
+
+
+exit();
+
+
+
+
 
 
 
