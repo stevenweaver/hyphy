@@ -74,6 +74,49 @@ lfunction models.protein.REV._DefineQ(model_dict, namespace) {
 }
 
 /**
+ * @name models.protein.REVML.ModelDescription
+ * @description Create the baseline schema (dictionary) for the REV+ML model of protein evolution
+ * @returns {Dictionary} model description
+ * @param {String} type
+ */
+function models.protein.REVML.ModelDescription(type) {
+	models.protein.REVML.ModelDescription.model_definition = models.protein.REV.ModelDescription (type);
+    models.protein.REVML.ModelDescription.model_definition [terms.model.frequency_estimator] = "frequencies.ML.protein";
+    models.protein.REVML.ModelDescription.model_definition [terms.model.efv_estimate_name]   =  utility.getGlobalValue("terms.frequencies.MLE");
+    return models.protein.REVML.ModelDescription.model_definition;
+}
+
+
+/**
+ * @name models.protein.REVML.ModelDescription.withGamma
+ * @description Create the baseline schema (dictionary) for the REV+ML model of protein evolution with four-category gamma rate variation
+ * @returns {Dictionary} model description
+ * @param {String} type
+ */
+function models.protein.REVML.ModelDescription.withGamma(type) {
+	models.protein.REVML.ModelDescription.withGamma.model_definition = models.protein.REVML.ModelDescription (type);
+    models.protein.REVML.ModelDescription.withGamma.model_definition [terms.model.frequency_estimator] = "frequencies.ML.protein";
+    models.protein.REVML.ModelDescription.withGamma.model_definition [terms.model.efv_estimate_name]   =  utility.getGlobalValue("terms.frequencies.MLE");
+    return models.protein.REVML.ModelDescription.withGamma.model_definition;
+}
+
+/**
+ * @name models.protein.REVML.ModelDescription.withGDD4
+ * @description Create the baseline schema (dictionary) for the REV+ML model of protein evolution with four-bin GDD variation
+ * @returns {Dictionary} model description
+ * @param {String} type
+ */
+function models.protein.REVML.ModelDescription.withGDD4(type) {
+	models.protein.REVML.ModelDescription.withGDD4.model_definition = models.protein.REVML.ModelDescription (type);
+    models.protein.REVML.ModelDescription.withGDD4.model_definition [terms.model.frequency_estimator] = "frequencies.ML.protein";
+    models.protein.REVML.ModelDescription.withGDD4.model_definition [terms.model.efv_estimate_name]   =  utility.getGlobalValue("terms.frequencies.MLE");
+    return models.protein.REVML.ModelDescription.withGDD4.model_definition;
+}
+
+
+
+
+/**
  * @name models.protein.REV.ModelDescription.withGamma
  * @description Define REV model with four-category gamma rate variation
  */

@@ -24,7 +24,7 @@ LoadFunctionLibrary("ProteinGTRFit_helper.ibf");
 utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 
-//utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
+utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
 
 
 
@@ -77,14 +77,18 @@ protein_gtr.index_to_filename = utility.SwapKeysAndValues(protein_gtr.file_list)
 
 
 // Prompt for convergence assessment type
-protein_gtr.convergence_type = io.SelectAnOption( protein_gtr.convergence_options, "Select a convergence criterion.");
+//protein_gtr.convergence_type = io.SelectAnOption( protein_gtr.convergence_options, "Select a convergence criterion.");
+protein_gtr.convergence_type = "RMSE";
 
 // Prompt for threshold
-protein_gtr.tolerance = io.PromptUser ("\n>Provide a tolerance level for convergence assessment (Default 0.01)",0.01,0,1,FALSE); // default, lower, upper, is_integer
+//protein_gtr.tolerance = io.PromptUser ("\n>Provide a tolerance level for convergence assessment (Default 0.01)",0.01,0,1,FALSE); // default, lower, upper, is_integer
+protein_gtr.tolerance = 0.1;
 
 // Prompt for baseline AA model
-protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
-                                                 "Select an empirical protein model to use for optimizing the provided branch lengths (we recommend LG):");
+//protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
+//                                                "Select an empirical protein model to use for optimizing the provided branch lengths (we recommend LG):");
+protein_gtr.baseline_model = "LG";
+
 // Prompt for rate variation
 protein_gtr.use_rate_variation = io.SelectAnOption( protein_gtr.rate_variation_options, "Would you like to optimize branch lengths with rate variation?");
 
@@ -94,18 +98,21 @@ protein_gtr.save_options();
 if (protein_gtr.use_rate_variation == "Gamma"){
     protein_gtr.baseline_model_name      = protein_gtr.baseline_model + "+F, with 4 category Gamma rates";
     protein_gtr.baseline_model_desc      = "protein_gtr.Baseline.ModelDescription.withGamma";
-    protein_gtr.rev_model_branch_lengths = "protein_gtr.REV.ModelDescription.withGamma";
+    protein_gtr.rev_model_intermediate   = "protein_gtr.REV.ModelDescription.withGamma";
+    protein_gtr.rev_model_final          = "models.protein.REVML.ModelDescription.withGamma";
 }  
 else {
     if (protein_gtr.use_rate_variation == "GDD"){
         protein_gtr.baseline_model_name      = protein_gtr.baseline_model + "+F, with 4 category GDD rates";
         protein_gtr.baseline_model_desc      = "protein_gtr.Baseline.ModelDescription.withGDD4";
-        protein_gtr.rev_model_branch_lengths = "protein_gtr.REV.ModelDescription.withGDD4";
+        protein_gtr.rev_model_intermediate   = "protein_gtr.REV.ModelDescription.withGDD4";
+        protein_gtr.rev_model_final          = "models.protein.REVML.ModelDescription.withGDD4";
     } 
     else {
         protein_gtr.baseline_model_name      = protein_gtr.baseline_model + "+F";
         protein_gtr.baseline_model_desc      = "protein_gtr.Baseline.ModelDescription";
-        protein_gtr.rev_model_branch_lengths = "protein_gtr.REV.ModelDescription";
+        protein_gtr.rev_model_intermediate   = "protein_gtr.REV.ModelDescription";
+        protein_gtr.rev_model_final          = "models.protein.REVML.ModelDescription";
     }
 }
 /********************************************************************************************************************/
@@ -133,7 +140,8 @@ protein_gtr.queue = mpi.CreateQueue ({  utility.getGlobalValue("terms.mpi.Header
                                         utility.getGlobalValue("terms.mpi.Variables") : {{
                                             "protein_gtr.shared_EFV",
                                             "protein_gtr.baseline_model_desc",
-                                            "protein_gtr.rev_model_branch_lengths",
+                                            "protein_gtr.rev_model_intermediate",
+                                            "protein_gtr.rev_model_final",
                                             "protein_gtr.baseline_model",
                                             "protein_gtr.index_to_filename",
                                             "protein_gtr.analysis_results",
@@ -182,31 +190,12 @@ io.ReportProgressMessageMD ("Protein GTR Fitter", " * Initial branch length fit"
 console.log("\n\n[PHASE 2] Performing initial REV fit to the data");
 
 result_key = protein_gtr.rev_phase_prefix + protein_gtr.fit_phase;
-protein_gtr.startTimer (protein_gtr.timers, result_key);
+
+protein_gtr.startTimer (protein_gtr.timers,result_key);
 protein_gtr.timer_count +=1;
 
 current = utility.Map (utility.Filter (protein_gtr.analysis_results, "_value_", "_value_/'" + protein_gtr.baseline_phase + "'"), "_value_", "_value_['" + protein_gtr.baseline_phase + "']");
-protein_gtr.current_gtr_fit = protein_gtr.fitGTRtoFileList (current, None, protein_gtr.final_phase, TRUE);
-
- 
-protein_gtr.stopTimer (protein_gtr.timers, protein_gtr.final_phase);
-
-
-
-
-
-
-/* Save the JSON */
-protein_gtr.stopTimer (protein_gtr.timers, "Total time");
-protein_gtr.analysis_results[terms.json.timers] = protein_gtr.timers;
-io.SpoolJSON(protein_gtr.analysis_results, protein_gtr.json_file);
-
-
-exit();
-
-
-
-
+protein_gtr.current_gtr_fit = protein_gtr.fitGTRtoFileList (current, None, result_key, FALSE);
 
 
 
