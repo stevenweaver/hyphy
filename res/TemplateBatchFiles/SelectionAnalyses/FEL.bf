@@ -273,7 +273,7 @@ lfunction fel.handle_a_site (lf, filter_data, partition_index, pattern_info, mod
     return {utility.getGlobalValue("terms.alternative") : alternative, utility.getGlobalValue("terms.null"): null};
 }
 
-/a2* echo to screen calls */
+/* echo to screen calls */
 
 fel.report.counts        = {{0,0}};
 
