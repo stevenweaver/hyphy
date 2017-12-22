@@ -289,9 +289,43 @@ lfunction alignments.DefineFiltersForPartitions(partitions, source_data, prefix,
 
 /**
  * @name alignments.serialize_site_filter
- * @param {DataFilter} data_filter
+ * Returns a function that creates a DataSetFilter with the specified site_index
+ * @param {String} a sting of a data_filter that is already in memory
  * @param {Number} site_index
- * @returns {String} a string representation of data_filter
+ * @returns {String} a string representation of a site filter to be executed
+ * @example
+ *         lfunction __make_filter (name) {
+ *                    DataSet hidden = ReadFromString ("#NEXUS
+ *
+ *        BEGIN TAXA;
+ *                DIMENSIONS NTAX = 10;
+ *                TAXLABELS
+ *                        'HUMAN' 'CHIMP' 'BABOON' 'RHMONKEY' 'COW' 'PIG' 'HORSE' 'CAT' 'MOUSE' 'RAT' ;
+ *        END;
+ *
+ *        BEGIN CHARACTERS;
+ *                DIMENSIONS NCHAR = 1;
+ *                FORMAT
+ *                        DATATYPE = DNA
+ *                        GAP=-
+ *                        MISSING=?
+ *                        NOLABELS
+ *                ;
+ *
+ *        MATRIX
+ *         C
+ *         C
+ *         G
+ *         G
+ *         -
+ *         -
+ *         -
+ *         C
+ *         G
+ *         G;
+ *        END;");
+ *                    DataSetFilter ^name = CreateFilter (hidden, 1,,,"");
+ *        }; 
  */
 lfunction alignments.serialize_site_filter (data_filter, site_index) {
     GetDataInfo (fi, ^data_filter, "PARAMETERS");

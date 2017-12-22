@@ -61,9 +61,9 @@ lfunction models.codon.BS_REL.ModelDescription(type, code, components) {
  * @param {Number} components (>=2)
  */
 lfunction models.codon.BS_REL_Per_Branch_Mixing.ModelDescription(type, code, components) {
-	template = models.codon.BS_REL.ModelDescription(type, code, components);
-	template [utility.getGlobalValue("terms.model.defineQ")] = "models.codon.BS_REL_Per_Branch_Mixing._DefineQ";
-	return template;
+    template = models.codon.BS_REL.ModelDescription(type, code, components);
+    template [utility.getGlobalValue("terms.model.defineQ")] = "models.codon.BS_REL_Per_Branch_Mixing._DefineQ";
+    return template;
 }
 
 /**
@@ -96,13 +96,18 @@ lfunction models.codon.BS_REL_Per_Branch_Mixing._DefineQ(bs_rel, namespace) {
                 'omega`component`', terms.AddCategory (utility.getGlobalValue('terms.parameters.omega_ratio'), component));
         }"
        );
+
        models.codon.generic.DefineQMatrix(bs_rel, namespace);
        rate_matrices [key] = bs_rel[utility.getGlobalValue("terms.model.rate_matrix")];
        (bs_rel [utility.getGlobalValue("terms.mixture.mixture_components")])[key] = _wts [component-1];
 
+    
        if ( component < bs_rel[utility.getGlobalValue("terms.model.components")]) {
             model.generic.AddLocal ( bs_rel, _aux[component-1], terms.AddCategory (utility.getGlobalValue("terms.mixture.mixture_aux_weight"), component ));
+
+            // It looks as though this is the only place that differs between Per_Branch_Mixing and BS_REL
             parameters.SetRange (_aux[component-1], utility.getGlobalValue("terms.range_almost_01"));
+
         }
     }
 
@@ -200,7 +205,6 @@ lfunction models.codon.BS_REL._DefineQ(bs_rel, namespace) {
     return bs_rel;
 }
 
-
 /**
  * @name models.codon.BS_REL.set_branch_length
  * @param {Model} model
@@ -243,9 +247,8 @@ function models.codon.BS_REL.post_definition(model) {
  */
 
 function models.codon.BS_REL.get_branch_length(model, tree, node) {
-	parameters.SetLocalModelParameters (model, tree, node);
-	bl = Eval (model [utility.getGlobalValue("terms.model.branch_length_string")]);
-	//console.log ("Branch length = " + bl);
-	return bl;
+    parameters.SetLocalModelParameters (model, tree, node);
+    bl = Eval (model [utility.getGlobalValue("terms.model.branch_length_string")]);
+    return bl;
 }
 

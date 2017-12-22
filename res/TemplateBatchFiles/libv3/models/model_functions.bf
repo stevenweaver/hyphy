@@ -131,6 +131,7 @@ function model.generic.AddLocal (model_spec, id, tag) {
 
 /**
  * @name model.generic.AddGlobal
+ * Adds a global tag to the model
  * @param model_spec
  * @param id
  * @param tag

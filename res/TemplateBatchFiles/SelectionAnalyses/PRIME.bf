@@ -38,9 +38,11 @@ io.DisplayAnalysisBanner(prime.analysis_description);
 utility.SetEnvVariable ("NORMALIZE_SEQUENCE_NAMES", TRUE);
 
 /* Globals */
-prime.site_alpha = "Site relative synonymous rate";
-prime.site_beta = "Site relative non-synonymous rate (tested branches)";
-prime.site_beta_nuisance = "Site relative non-synonymous rate (untested branches)";
+prime.site_alpha_0 = "Property 0 Site relative synonymous rate";
+prime.site_alpha_1 = "Property 1 Site relative synonymous rate";
+prime.site_alpha_2 = "Property 2 Site relative synonymous rate";
+prime.site_alpha_3 = "Property 3 Site relative synonymous rate";
+prime.site_alpha_4 = "Property 4 Site relative synonymous rate";
 
 // default cutoff for printing to screen
 prime.p_value = 0.1;
@@ -156,20 +158,128 @@ io.CheckAssertion ("None!=prime.alpha && None!=prime.beta", "Could not find expe
 
 selection.io.startTimer (prime.json [terms.json.timers], "prime analysis", 2);
 
-//----------------------------------------------------------------------------------------
-function fel.apply_proportional_site_constraint (tree_name, node_name, alpha_parameter, beta_parameter, alpha_factor, beta_factor, branch_length) {
 
-    fel.branch_length = (branch_length[terms.parameters.synonymous_rate])[terms.fit.MLE];
+// Full Model
+function prime.set_global_parameters() {
 
-    node_name = tree_name + "." + node_name;
+    model.generic.AddGlobal(prim.site.mg_rev, "prime.alpha_0", prime.parameter_site_alpha);
+    parameters.DeclareGlobal ("prime.alpha_0", {});
 
-    ExecuteCommands ("
-        `node_name`.`alpha_parameter` := (`alpha_factor`) * fel.branch_length__;
-        `node_name`.`beta_parameter`  := (`beta_factor`)  * fel.branch_length__;
-    ");
+    model.generic.AddGlobal(prime.site.mg_rev, "prime.alpha_1", prime.parameter_site_alpha);
+    parameters.DeclareGlobal ("prime.alpha_1", {});
+
+    model.generic.AddGlobal (prime.site.mg_rev, "prime.alpha_scaler", prime.site_alpha);
+    model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_test", prime.site_beta);
+    model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_nuisance", prime.site_beta_nuisance);
+
+    parameters.DeclareGlobal (prime.scalers, {});
+
+
 }
 
+lfunction prime.handle_a_site (lf, filter_data, partition_index, pattern_info, model_mapping) {
+
+
+    GetString   (lfInfo, ^lf_fel,-1);
+
+    ExecuteCommands (filter_data);
+    __make_filter ((lfInfo["Datafilters"])[0]);
+
+    GetString (lfInfo, ^lf_bsrel,-1);
+    __make_filter ((lfInfo["Datafilters"])[0]);
+
+    bsrel_tree_id = (lfInfo["Trees"])[0];
+
+    utility.SetEnvVariable ("USE_LAST_RESULTS", TRUE);
+
+    ^"prime.site_alpha" = 1;
+    ^"prime.site_beta_plus"  = 1;
+    ^"prime.site_beta_nuisance"  = 1;
+    
+    Optimize (results, ^lf_fel);
+
+    fel = estimators.ExtractMLEs (lf_fel, model_mapping);
+    fel[utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
+
+
+     ^"meme.site_mixture_weight" = 0.75;
+     if (^"meme.site_alpha" > 0) {
+         ^"meme.site_omega_minus" = 1;
+     } else {
+         ^"meme.site_omega_minus" = ^"meme.site_beta_plus" / Max (^"meme.site_alpha", 1e-6);
+         /* avoid 0/0 by making the denominator non-zero*/
+     }
+
+    Optimize (results, ^lf_bsrel);
+
+    alternative = estimators.ExtractMLEs (lf_bsrel, model_mapping);
+    alternative [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
+
+
+    ancestral_info = ancestral.build (lf_bsrel,0,FALSE);
+
+    //TODO
+    branch_substitution_information = selection.substitution_mapper (ancestral_info ["MATRIX"],
+                                                      ancestral_info ["TREE_AVL"],
+                                                      ancestral_info ["AMBIGS"],
+                                                      ^"meme.pairwise_counts",
+                                                      ancestral_info ["MAPPING"],
+                                                      (^"meme.codon_data_info")[utility.getGlobalValue("terms.code")]);
+
+
+    DeleteObject (ancestral_info);
+
+    branch_ebf       = {};
+    branch_posterior = {};
+
+    if (^"meme.site_beta_plus" > ^"meme.site_alpha" && ^"meme.site_mixture_weight" > 0) {
+
+        LFCompute (^lf_bsrel,LF_START_COMPUTE);
+        LFCompute (^lf_bsrel,baseline);
+
+        utility.ForEach (^bsrel_tree_id, "_node_name_",
+        '
+            if ((meme.selected_branches [^"`&partition_index`"])[_node_name_]  == utility.getGlobalValue("terms.tree_attributes.test")) {
+                _node_name_res_ = meme.compute_branch_EBF (^"`&lf_bsrel`", ^"`&bsrel_tree_id`", _node_name_, ^"`&baseline`");
+                (^"`&branch_ebf`")[_node_name_] = _node_name_res_[utility.getGlobalValue("terms.empirical_bayes_factor")];
+                (^"`&branch_posterior`")[_node_name_] = _node_name_res_[utility.getGlobalValue("terms.posterior")];
+            } else {
+                (^"`&branch_ebf`")[_node_name_] = None;
+                (^"`&branch_posterior`")[_node_name_] = None;
+            }
+        '
+        );
+
+        LFCompute (^lf_bsrel,LF_DONE_COMPUTE);
+
+        ^"meme.site_beta_plus" := ^"meme.site_alpha";
+        Optimize (results, ^lf_bsrel);
+
+        null = estimators.ExtractMLEs (lf_bsrel, model_mapping);
+        null [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
 
 
 
+    } else {
+        null = alternative;
+        utility.ForEach (^bsrel_tree_id, "_node_name_",
+        '
+            if ((meme.selected_branches [^"`&partition_index`"])[_node_name_]  == utility.getGlobalValue("terms.tree_attributes.test")) {
+                (^"`&branch_ebf`")[_node_name_] = 1.0;
+                (^"`&branch_posterior`")[_node_name_] = 0.0;
+            } else {
+                (^"`&branch_ebf`")[_node_name_] = None;
+                (^"`&branch_posterior`")[_node_name_] = None;
+            }
+        '
+        );
+    }
+
+    return {"fel" : fel,
+            utility.getGlobalValue("terms.alternative") : alternative,
+            utility.getGlobalValue("terms.posterior") : branch_posterior,
+            utility.getGlobalValue("terms.empirical_bayes_factor") : branch_ebf,
+            utility.getGlobalValue("terms.branch_selection_attributes") : branch_substitution_information, //TODO: keep this attr?
+            utility.getGlobalValue("terms.null"): null};
+}
 

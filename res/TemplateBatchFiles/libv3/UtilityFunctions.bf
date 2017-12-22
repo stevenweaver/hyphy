@@ -360,7 +360,7 @@ function utility.First (object, lambda_name, condition) {
 
 /**
  * @name utility.ForEach
- * @param {Tree|Dictionary|Matrix} object - matrix to convert
+ * @param {Tree|Dictionary|Matrix} object - item to iterate through
  * @param {String} lambda_name
  * @param {String} transform
  * @returns nothing
@@ -850,8 +850,9 @@ lfunction utility.BinByValue (obj) {
 
 
 /**
+ * @name utility.GetListOfLoadedModules
  * Returns the list of modules loaded with `LoadFunctionLibrary`
- * param: {String} filter, if provided, will filter the list of library paths via a regexp
+ * @param {String} filter, if provided, will filter the list of library paths via a regexp
  * @returns a string matrix with (absolute) file paths for loaded modules
  */
 lfunction utility.GetListOfLoadedModules (filter) {

@@ -50,8 +50,6 @@ meme.analysis_description = {
 
 io.DisplayAnalysisBanner(meme.analysis_description);
 
-
-
 /*------------------------------------------------------------------------------
     Environment setup
 */
@@ -217,8 +215,6 @@ meme.site_model_mapping = {
 selection.io.startTimer (meme.json [terms.json.timers], "MEME analysis", 2);
 
 
-// TODO : Why aren't these initially set when the model is first declared?
-
 // FEL parameter declarations
 model.generic.AddGlobal (meme.site.background_fel, "meme.site_alpha", meme.parameter_site_alpha);
 parameters.DeclareGlobal ("meme.site_alpha", {});
@@ -287,11 +283,7 @@ for (meme.partition_index = 0; meme.partition_index < meme.partition_count; meme
                  meme.alpha, meme.beta, "meme.site_alpha", _beta_scaler, (( meme.final_partitioned_mg_results[utility.getGlobalValue("terms.branch_length")])[meme.partition_index])[_node_]);
         ');
 
-
-
-
     // create the likelihood function for this site
-
     ExecuteCommands (alignments.serialize_site_filter
                                        ((meme.filter_specification[meme.partition_index])[utility.getGlobalValue("terms.data.name")],
                                        ((meme.site_patterns[0])[utility.getGlobalValue("terms.data.sites")])[0],
@@ -447,7 +439,6 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
 
     GetString   (lfInfo, ^lf_fel,-1);
 
-
     //TODO Datafilters hardcode, Trees hardcode.
     ExecuteCommands (filter_data);
     __make_filter ((lfInfo["Datafilters"])[0]);
@@ -468,7 +459,6 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
     fel = estimators.ExtractMLEs (lf_fel, model_mapping);
     fel[utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
 
-
      ^"meme.site_mixture_weight" = 0.75;
      if (^"meme.site_alpha" > 0) {
          ^"meme.site_omega_minus" = 1;
@@ -485,7 +475,6 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
 
     ancestral_info = ancestral.build (lf_bsrel,0,FALSE);
 
-    //TODO
     branch_substitution_information = selection.substitution_mapper (ancestral_info ["MATRIX"],
                                                       ancestral_info ["TREE_AVL"],
                                                       ancestral_info ["AMBIGS"],

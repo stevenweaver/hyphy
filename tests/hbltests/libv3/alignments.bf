@@ -14,6 +14,18 @@ function test_read_nucleotide_alignment() {
 
 }
 
+function test_serialize_site_filter() {
+
+    file_name = "`PATH_TO_CURRENT_BF`data/CD2.nex";
+    hky85.nuc_data = {};
+    hky85.nuc_filter = {};
+
+    results = alignments.ReadNucleotideAlignment(file_name, "hky85.nuc_data", "hky85.nuc_filter");
+    serialized = alignments.serialize_site_filter("hky85.nuc_filter", 10);
+
+}
+
 test_read_nucleotide_alignment();
+test_serialize_site_filter();
 
 

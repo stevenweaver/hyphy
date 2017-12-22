@@ -65,17 +65,16 @@ namespace mpi {
         return object;
     }
 
-
+    /** create and return an empty FIFO queue for MPI jobs
+     * @name mpi.CreateQueue
+     * @param  {Dict} nodesetup
+     *      controls what gets passed to slave nodes
+     *      "Headers" -> iterable (matrix/dict) of string paths of header files to load
+     *      "Models" ->  matrix of model names to make available to slave nodes
+     *      "LikelihoodFunctions" -> iterable (matrix/dict) of LikelihoodFunction IDs to export to slave nodes
+     * @return {Dict} an "opaque" queue structure
+     */
     lfunction CreateQueue (nodesetup) {
-        /** create and return an empty FIFO queue for MPI jobs
-         * @name mpi.CreateQueue
-         * @param  {Dict} nodesetup
-         *      controls what gets passed to slave nodes
-         *      "Headers" -> iterable (matrix/dict) of string paths of header files to load
-         *      "Models" ->  matrix of model names to make available to slave nodes
-         *      "LikelihoodFunctions" -> iterable (matrix/dict) of LikelihoodFunction IDs to export to slave nodes
-         * @return {Dict} an "opaque" queue structure
-         */
 
         mpi_node_count = utility.GetEnvVariable ("MPI_NODE_COUNT");
 

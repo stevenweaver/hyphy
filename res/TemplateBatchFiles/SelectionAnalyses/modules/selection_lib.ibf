@@ -1,5 +1,3 @@
-/*------------------------------------------------------------------------------------*/
-
 /**
  * creates branch substitution attributes and metrics
  * @name selection.substitution_mapper

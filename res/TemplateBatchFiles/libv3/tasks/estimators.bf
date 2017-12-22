@@ -445,31 +445,33 @@ lfunction estimators.TraverseLocalParameters (likelihood_function_id, model_desc
 
 
 /**
- * @name    
- * @param {String} likelihood_function_id
- * @param {Dictionary} model_descriptions
- * @param {Matrix} initial_values
- * @param branch_length_conditions
+ * @name estimators.ApplyExistingEstimates
+ * @param {String} likelihood_function_id - a string that is a reference to a previously defined LikelihoodFunction variable
+ * @param {Dictionary} model_descriptions - A dictionary of previously defined models to set the estimators to
+ * @param {AssociativeList} initial_values - initial values coming from a
+ * previous maximum likelihood estimation run such as to estimators.FitMGREV or estimators.FitGTR
+ * @param {String} branch_length_conditions - 
+ * Possible conditions : 
+ *   terms.globals_only - if set to terms.globals_only, only use existing global variables
  * @returns estimators.ApplyExistingEstimates.df_correction - Abs(estimators.ApplyExistingEstimates.keep_track_of_proportional_scalers);
+ * @todo Is there a fundamental reason why model_descriptions and the likelihood function would be decoupled when making the call to this function?
  */
 function estimators.ApplyExistingEstimates(likelihood_function_id, model_descriptions, initial_values, branch_length_conditions) {
-    //fprintf (stdout, model_descriptions, "\n", initial_values, "\n");
 
-	/* set all category variable values to one */
-
+	  /* set all category variable values to one */
     GetString(estimators.ApplyExistingEstimates.lfInfo, ^ likelihood_function_id, -1);
     estimators.ApplyExistingEstimates.results = {};
     estimators.ApplyExistingEstimates.partitions = utility.Array1D(estimators.ApplyExistingEstimates.lfInfo[terms.fit.trees]);
-
 
     estimators.ApplyExistingEstimates.df_correction = 0;
     // copy global variables first
 
     estimators.ApplyExistingEstimates.results[terms.global] = {};
-    model_descriptions["estimators.SetCategory"][""];
-    // the above line traverses all model descriptions and sets
-    // the _value_ of category variables to 1, so that we can
+
+    // traverses all model descriptions and sets
+    // the _value_ of category variables to 1 so that we can
     // compute branch lengths
+    model_descriptions["estimators.SetCategory"][""];
 
     model_descriptions["estimators.SetGlobals"][""];
 
@@ -531,8 +533,8 @@ function estimators.ApplyExistingEstimates(likelihood_function_id, model_descrip
         }
     } // have branch lengths for this partition
 
-
     return estimators.ApplyExistingEstimates.df_correction - Abs(estimators.ApplyExistingEstimates.keep_track_of_proportional_scalers);
+
 }
 
 /**

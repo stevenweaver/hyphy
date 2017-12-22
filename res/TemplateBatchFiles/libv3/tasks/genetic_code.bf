@@ -23,8 +23,6 @@ genetic_code.SS                     = "SS";
 genetic_code.NS                     = "NS";
 
 
-
-
 genetic_code.singleAALetterToFullName = {
     "A": "Alanine",
     "C": "Cysteine",
@@ -48,9 +46,6 @@ genetic_code.singleAALetterToFullName = {
     "Y": "Tyrosine",
     "X": "Stop Codon"
 };
-
-
-
 
 /**
  * genetic_code.DefineCodonToAAGivenCode
@@ -207,6 +202,7 @@ lfunction genetic_code.IsStop(codon, code) {
  * }
  */
 lfunction genetic_code.DefineIntegerToAAMapping (code, only_sense) {
+
     codon_code_map = {};
 
     shift = 0;

@@ -53,7 +53,6 @@ lfunction models.codon.MG_REV._GenerateRate(fromChar, toChar, namespace, model_t
  * @param {Matrix} _tt - translation table
  */
 
-
 lfunction models.codon.MG_REV._GenerateRate_generic (fromChar, toChar, namespace, model_type, _tt, alpha, alpha_term, beta, beta_term, omega, omega_term) {
 
     _GenerateRate.p = {};
@@ -115,10 +114,10 @@ function models.codon.MG_REV._DefineQ(mg_rev, namespace) {
  * @returns {Number} 0
  */
 function models.codon.MG_REV.set_branch_length(model, value, parameter) {
+
     if (model[terms.model.type] == terms.global) {
         return models.generic.SetBranchLength(model, value, parameter);
     }
-
 
     models.codon.MG_REV.set_branch_length.beta = model.generic.GetLocalParameter(model, terms.parameters.nonsynonymous_rate);
     models.codon.MG_REV.set_branch_length.alpha = model.generic.GetLocalParameter(model, terms.parameters.synonymous_rate);
