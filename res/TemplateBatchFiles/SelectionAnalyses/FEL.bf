@@ -476,8 +476,6 @@ selection.io.stopTimer (fel.json [terms.json.timers], "Total time");
 selection.io.stopTimer (fel.json [terms.json.timers], "FEL analysis");
 
 
-
-fprintf(stdout, fel.json);
 io.SpoolJSON (fel.json, fel.codon_data_info[terms.json.json]);
 
 
