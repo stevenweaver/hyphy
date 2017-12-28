@@ -21,6 +21,10 @@ LoadFunctionLibrary("libv3/convenience/math.bf");
 
 LoadFunctionLibrary("modules/io_functions.ibf");
 
+utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1);
+utility.ToggleEnvVariable ("OPTIMIZATION_TIME_HARD_LIMIT", 1);
+
+
 /* Display analysis information */
 
 prime.analysis_description = {
@@ -70,6 +74,12 @@ prime.table_headers = {
                          {"alpha_4", "Synonymous substitution rate at a site"}
                          {"alpha_4_pval", "The rate estimate under the neutral model"}
                      };
+
+prime.table_headers = {
+                        {"alpha_0", "Synonymous substitution rate at a site"}
+                        {"alpha_1", "Synonymous substitution rate at a site"}
+                      };
+
 
 
 /**
@@ -137,7 +147,6 @@ selection.io.stopTimer (prime.json [terms.json.timers], "Model fitting");
 // define the site-level likelihood function
 
 // TODO: This is where we need to implement the QCAP model
-
 prime.site.mg_rev = model.generic.DefineModel("models.codon.MG_REV.ModelDescription",
         "prime_mg", {
             "0": parameters.Quote(terms.local),
@@ -152,134 +161,301 @@ prime.site_model_mapping = {"prime_mg" : prime.site.mg_rev};
 /* set up the local constraint model */
 
 // TODO : will need to update
+prime.scalers = {{"prime.alpha_scaler", "prime.beta_scaler_test", "prime.beta_scaler_nuisance"}};
+model.generic.AddGlobal (prime.site.mg_rev, "prime.alpha_scaler", prime.site_alpha);
+model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_test", prime.site_beta);
+model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_nuisance", prime.site_beta_nuisance);
+parameters.DeclareGlobal (prime.scalers, {});
+
 prime.alpha = model.generic.GetLocalParameter (prime.site.mg_rev, utility.getGlobalValue("terms.parameters.synonymous_rate"));
 prime.beta = model.generic.GetLocalParameter (prime.site.mg_rev, utility.getGlobalValue("terms.parameters.nonsynonymous_rate"));
+
 io.CheckAssertion ("None!=prime.alpha && None!=prime.beta", "Could not find expected local synonymous and non-synonymous rate parameters in \`estimators.FitMGREV\`");
 
-selection.io.startTimer (prime.json [terms.json.timers], "prime analysis", 2);
+selection.io.startTimer (prime.json [terms.json.timers], "PRIME analysis", 2);
 
+prime.report.count = {{0}};
+
+prime.report.positive_site = {{"" + (1+((prime.filter_specification[prime.report.partition])[terms.data.coverage])[prime.report.site]),
+                                    prime.report.partition + 1,
+                                    Format(prime.report.row[0],7,3),
+                                    Format(prime.report.row[3],7,3),
+                                    Format(prime.report.row[4],7,3),
+                                    Format(prime.report.row[5],7,3),
+                                    "Yes, p = " + Format(prime.report.row[6],7,4),
+                                    Format(prime.report.row[7],0,0)
+}};
+
+prime.site_results = {};
+
+for (prime.partition_index = 0; prime.partition_index < prime.partition_count; prime.partition_index += 1) {
+
+    prime.report.header_done = FALSE;
+    prime.table_output_options[utility.getGlobalValue("terms.table_options.header")] = TRUE;
+
+    model.ApplyModelToTree( "prime.site_tree_fel", prime.trees[prime.partition_index], {terms.default : prime.site.mg_rev}, None);
+
+    prime.site_patterns = alignments.Extract_site_patterns ((prime.filter_specification[prime.partition_index])[utility.getGlobalValue("terms.data.name")]);
+
+    utility.ForEach (prime.case_respecting_node_names, "_node_",
+            '_node_class_ = (prime.selected_branches[prime.partition_index])[_node_];
+             if (_node_class_ == terms.tree_attributes.test) {
+                _beta_scaler = prime.scalers[1];
+             } else {
+                _beta_scaler = prime.scalers[2];
+             }
+             prime.apply_proportional_site_constraint ("prime.site_tree", _node_, prime.alpha, prime.beta, prime.scalers[0], _beta_scaler, (( prime.final_partitioned_mg_results[terms.branch_length])[prime.partition_index])[_node_]);
+        ');
+
+    // create the likelihood function for this site
+    ExecuteCommands (alignments.serialize_site_filter
+                                       ((prime.filter_specification[prime.partition_index])[utility.getGlobalValue("terms.data.name")],
+                                       ((prime.site_patterns[0])[utility.getGlobalValue("terms.data.sites")])[0],
+                     ));
+
+    __make_filter ("prime.site_filter");
+
+    LikelihoodFunction prime.site_likelihood = (prime.site_filter, prime.site_tree_fel);
+
+    estimators.ApplyExistingEstimates ("prime.site_likelihood", prime.site_model_mapping, prime.final_partitioned_mg_results,
+                                        terms.globals_only);
+
+    prime.queue = mpi.CreateQueue ({terms.mpi.LikelihoodFunctions: {{"prime.site_likelihood"}},
+                                   terms.mpi.Models : {{"prime.site.mg_rev"}},
+                                   terms.mpi.Headers : utility.GetListOfLoadedModules ("libv3/"),
+                                   terms.mpi.Variables : {{"prime.selected_branches","prime.codon_data_info"}},
+                                   terms.mpi.Functions : {{"prime.compute_branch_EBF"}}
+                                 });
+
+
+    // We need to queue a new job for each alpha
+    constraints = {
+        "0" : {"name": "alpha_0", "constraint" : "alpha_0 := 0", "cleanup" : "alpha_0 = 1"},
+        "1" : {"name": "alpha_1", "constraint" : "alpha_1 := 0", "cleanup" : "alpha_1 = 1"},
+        "2" : {"name": "alpha_2", "constraint" : "alpha_2 := 0", "cleanup" : "alpha_2 = 1"},
+        "3" : {"name": "alpha_3", "constraint" : "alpha_3 := 0", "cleanup" : "alpha_3 = 1"},
+        "4" : {"name": "alpha_4", "constraint" : "alpha_4 := 0", "cleanup" : "alpha_4 = 1"}
+    };
+
+    utility.ForEachPair (prime.site_patterns, "_pattern_", "_pattern_info_",
+        '
+
+            for (i = 0; i < 5; i += 1) {
+                if (_pattern_info_[terms.data.is_constant]) {
+                    prime.store_results (-1,None,{"0" : "prime.site_likelihood",
+                                                 "1" : None,
+                                                 "2" : prime.partition_index,
+                                                 "3" : _pattern_info_,
+                                                 "4" : prime.site_model_mapping,
+                                                 "5" : constraints[i]
+                                         });
+                } else {
+                    mpi.QueueJob (prime.queue, "prime.handle_a_site", {"0" : "prime.site_likelihood",
+                                                                     "1" : alignments.serialize_site_filter
+                                                                       ((prime.filter_specification[prime.partition_index])[utility.getGlobalValue("terms.data.name")],
+                                                                       (_pattern_info_[utility.getGlobalValue("terms.data.sites")])[0]),
+                                                                     "2" : prime.partition_index,
+                                                                     "3" : _pattern_info_,
+                                                                     "4" : prime.site_model_mapping,
+                                                                     "5" : constraints[i]
+                                                                        },
+                                                                        "prime.store_results");
+                }
+            }
+        '
+    );
+
+    mpi.QueueComplete (prime.queue);
+    prime.partition_matrix = {Abs (prime.site_results[prime.partition_index]), Rows (prime.table_headers)};
+
+    fprintf(stdout, prime.site_results);
+
+    utility.ForEachPair (prime.site_results[prime.partition_index], "_key_", "_value_",
+    '
+        for (prime.index = 0; prime.index < Rows (prime.table_headers); prime.index += 1) {
+            prime.partition_matrix [0+_key_][prime.index] = _value_["0"][prime.index];
+        }
+    '
+    );
+
+    prime.site_results[prime.partition_index] = prime.partition_matrix;
+
+}
+
+prime.json [terms.json.MLE] = {terms.json.headers   : prime.table_headers,
+                               terms.json.content : prime.site_results };
+
+// conduct prime post processing
+
+io.ReportProgressMessageMD ("prime", "results", "** Found _" + prime.report.count[0] + "_ sites under episodic diversifying positive selection at p <= " + prime.pvalue + "**");
+
+selection.io.stopTimer (prime.json [terms.json.timers], "Total time");
+selection.io.stopTimer (prime.json [terms.json.timers], "PRIME analysis");
+
+io.SpoolJSON (prime.json, prime.codon_data_info[terms.json.json]);
+
+function prime.apply_proportional_site_constraint(tree_name, node_name, alpha_parameter, beta_parameter, alpha_factor, beta_factor, branch_length) {
+
+    prime.branch_length = (branch_length[terms.parameters.synonymous_rate])[terms.fit.MLE];
+
+    node_name = tree_name + "." + node_name;
+
+    ExecuteCommands ("
+        `node_name`.`alpha_parameter` := (`alpha_factor`) * prime.branch_length__;
+        `node_name`.`beta_parameter`  := (`beta_factor`)  * prime.branch_length__;
+    ");
+}
 
 // Full Model
 function prime.set_global_parameters() {
 
-    model.generic.AddGlobal(prim.site.mg_rev, "prime.alpha_0", prime.parameter_site_alpha);
-    parameters.DeclareGlobal ("prime.alpha_0", {});
+    //model.generic.AddGlobal(prim.site.mg_rev, "prime.alpha_0", prime.parameter_site_alpha);
+    //parameters.DeclareGlobal ("prime.alpha_0", {});
 
-    model.generic.AddGlobal(prime.site.mg_rev, "prime.alpha_1", prime.parameter_site_alpha);
-    parameters.DeclareGlobal ("prime.alpha_1", {});
+    //model.generic.AddGlobal(prime.site.mg_rev, "prime.alpha_1", prime.parameter_site_alpha);
+    //parameters.DeclareGlobal ("prime.alpha_1", {});
 
+    //model.generic.AddGlobal (prime.site.mg_rev, "prime.alpha_scaler", prime.site_alpha);
+    //model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_test", prime.site_beta);
+    //model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_nuisance", prime.site_beta_nuisance);
+
+    //parameters.DeclareGlobal (prime.scalers, {});
+
+    prime.scalers = {{"prime.alpha_scaler", "prime.beta_scaler_test", "prime.beta_scaler_nuisance"}};
     model.generic.AddGlobal (prime.site.mg_rev, "prime.alpha_scaler", prime.site_alpha);
     model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_test", prime.site_beta);
     model.generic.AddGlobal (prime.site.mg_rev, "prime.beta_scaler_nuisance", prime.site_beta_nuisance);
-
     parameters.DeclareGlobal (prime.scalers, {});
-
 
 }
 
-lfunction prime.handle_a_site (lf, filter_data, partition_index, pattern_info, model_mapping) {
+//----------------------------------------------------------------------------------------
+lfunction prime.compute_branch_EBF (lf_id, tree_name, branch_name, baseline) {
+
+    parameter_name = "`tree_name`.`branch_name`." + ^"prime.branch_mixture";
+    ^parameter_name = 1;
+
+    LFCompute (^lf_id,LOGL0);
+
+    utility.ExecuteInGlobalNamespace (parameter_name + ":= prime.site_mixture_weight");
+
+    if (^"prime.site_mixture_weight" != 1 && ^"prime.site_mixture_weight" != 0) {
+        _priorOdds = (1-^"prime.site_mixture_weight")/^"prime.site_mixture_weight";
+    } else {
+        _priorOdds = 0;
+    }
+
+    normalizer  = -Max (LOGL0,baseline);
 
 
-    GetString   (lfInfo, ^lf_fel,-1);
+    p1 = Exp(LOGL0+normalizer) * ^"prime.site_mixture_weight";
+    p2 = (Exp(baseline+normalizer) - p1);
 
+    _posteriorProb = {{p1,p2}};
+
+    _posteriorProb = _posteriorProb * (1/(+_posteriorProb));
+    if ( _priorOdds != 0) {
+        eBF = _posteriorProb[1] / (1 - _posteriorProb[1]) / _priorOdds;
+    } else {
+        eBF = 1;
+    }
+    return {utility.getGlobalValue("terms.empirical_bayes_factor") : eBF__, utility.getGlobalValue("terms.posterior") : _posteriorProb__[1]};
+}
+
+
+// Performs MLE optimization per site. This function is executed in an embarrassingly parallel way.
+lfunction prime.handle_a_site (lf, filter_data, partition_index, pattern_info, model_mapping, test_condition) {
+
+    GetString (lfInfo, ^lf,-1);
     ExecuteCommands (filter_data);
     __make_filter ((lfInfo["Datafilters"])[0]);
 
-    GetString (lfInfo, ^lf_bsrel,-1);
-    __make_filter ((lfInfo["Datafilters"])[0]);
-
-    bsrel_tree_id = (lfInfo["Trees"])[0];
-
     utility.SetEnvVariable ("USE_LAST_RESULTS", TRUE);
 
-    ^"prime.site_alpha" = 1;
-    ^"prime.site_beta_plus"  = 1;
-    ^"prime.site_beta_nuisance"  = 1;
+    // declares constraint
+    ExecuteCommands(test_condition["constraint"]);
+
+    Optimize (results, ^lf);
+
+    alpha_fit = estimators.ExtractMLEs (lf, model_mapping);
+    alpha_fit[utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
+
+    fit = {
+        "name" : test_condition["name"],
+        "fit" : alpha_fit
+    };
+
+    ExecuteCommands(test_condition["cleanup"]);
+
+    return fit;
     
-    Optimize (results, ^lf_fel);
+}
 
-    fel = estimators.ExtractMLEs (lf_fel, model_mapping);
-    fel[utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
+//
+function prime.report.echo (prime.report.site, prime.report.partition, prime.report.row) {
 
+    prime.print_row = None;
 
-     ^"meme.site_mixture_weight" = 0.75;
-     if (^"meme.site_alpha" > 0) {
-         ^"meme.site_omega_minus" = 1;
-     } else {
-         ^"meme.site_omega_minus" = ^"meme.site_beta_plus" / Max (^"meme.site_alpha", 1e-6);
-         /* avoid 0/0 by making the denominator non-zero*/
-     }
-
-    Optimize (results, ^lf_bsrel);
-
-    alternative = estimators.ExtractMLEs (lf_bsrel, model_mapping);
-    alternative [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
-
-
-    ancestral_info = ancestral.build (lf_bsrel,0,FALSE);
-
-    //TODO
-    branch_substitution_information = selection.substitution_mapper (ancestral_info ["MATRIX"],
-                                                      ancestral_info ["TREE_AVL"],
-                                                      ancestral_info ["AMBIGS"],
-                                                      ^"meme.pairwise_counts",
-                                                      ancestral_info ["MAPPING"],
-                                                      (^"meme.codon_data_info")[utility.getGlobalValue("terms.code")]);
-
-
-    DeleteObject (ancestral_info);
-
-    branch_ebf       = {};
-    branch_posterior = {};
-
-    if (^"meme.site_beta_plus" > ^"meme.site_alpha" && ^"meme.site_mixture_weight" > 0) {
-
-        LFCompute (^lf_bsrel,LF_START_COMPUTE);
-        LFCompute (^lf_bsrel,baseline);
-
-        utility.ForEach (^bsrel_tree_id, "_node_name_",
-        '
-            if ((meme.selected_branches [^"`&partition_index`"])[_node_name_]  == utility.getGlobalValue("terms.tree_attributes.test")) {
-                _node_name_res_ = meme.compute_branch_EBF (^"`&lf_bsrel`", ^"`&bsrel_tree_id`", _node_name_, ^"`&baseline`");
-                (^"`&branch_ebf`")[_node_name_] = _node_name_res_[utility.getGlobalValue("terms.empirical_bayes_factor")];
-                (^"`&branch_posterior`")[_node_name_] = _node_name_res_[utility.getGlobalValue("terms.posterior")];
-            } else {
-                (^"`&branch_ebf`")[_node_name_] = None;
-                (^"`&branch_posterior`")[_node_name_] = None;
-            }
-        '
-        );
-
-        LFCompute (^lf_bsrel,LF_DONE_COMPUTE);
-
-        ^"meme.site_beta_plus" := ^"meme.site_alpha";
-        Optimize (results, ^lf_bsrel);
-
-        null = estimators.ExtractMLEs (lf_bsrel, model_mapping);
-        null [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
-
-
-
-    } else {
-        null = alternative;
-        utility.ForEach (^bsrel_tree_id, "_node_name_",
-        '
-            if ((meme.selected_branches [^"`&partition_index`"])[_node_name_]  == utility.getGlobalValue("terms.tree_attributes.test")) {
-                (^"`&branch_ebf`")[_node_name_] = 1.0;
-                (^"`&branch_posterior`")[_node_name_] = 0.0;
-            } else {
-                (^"`&branch_ebf`")[_node_name_] = None;
-                (^"`&branch_posterior`")[_node_name_] = None;
-            }
-        '
-        );
+    if (prime.report.row [4] < prime.pvalue) {
+        if (prime.report.row[0] < prime.report.row[1]) {
+            prime.print_row = prime.report.positive_site;
+            prime.report.counts[0] += 1;
+        } else {
+            prime.print_row = prime.report.negative_site;
+            prime.report.counts [1] += 1;
+        }
     }
 
-    return {"fel" : fel,
-            utility.getGlobalValue("terms.alternative") : alternative,
-            utility.getGlobalValue("terms.posterior") : branch_posterior,
-            utility.getGlobalValue("terms.empirical_bayes_factor") : branch_ebf,
-            utility.getGlobalValue("terms.branch_selection_attributes") : branch_substitution_information, //TODO: keep this attr?
-            utility.getGlobalValue("terms.null"): null};
+    if (None != prime.print_row) {
+
+        if (!prime.report.header_done) {
+            io.ReportProgressMessageMD("prime", "" + prime.report.partition, "For partition " + (prime.report.partition+1) + " these sites are significant at p <=" + prime.pvalue + "\n");
+            fprintf (stdout,
+                io.FormatTableRow (prime.table_screen_output,prime.table_output_options));
+            prime.report.header_done = TRUE;
+            prime.table_output_options[terms.table_options.header] = FALSE;
+        }
+
+        fprintf (stdout,
+            io.FormatTableRow (prime.print_row,prime.table_output_options));
+
+    }
+
 }
+
+lfunction prime.store_results (node, result, arguments) {
+
+    partition_index = arguments [2];
+    pattern_info = arguments [3];
+
+    fit_name = result["name"];
+    fit_results = result["fit"];
+
+    result_row = {{ 0, 0 }};
+
+    // not a constant site
+    if (None != result) { 
+        result_row [0] = estimators.GetGlobalMLE (fit_results, ^"prime.site_alpha");
+    }
+
+    utility.EnsureKey (^"prime.site_results", partition_index);
+
+    utility.ForEach (pattern_info[utility.getGlobalValue("terms.data.sites")], "_prime_result_",
+        '
+            utility.EnsureKey (prime.site_results[`&partition_index`], _prime_result_);
+            ((prime.site_results[`&partition_index`])[_prime_result_])[`&fit_name`] = `&result_row`;
+        '
+    );
+
+    // Only report to screen when all tests have been completed
+    //prime.report.echo (_prime_result_, `&partition_index`, `&result_row`);
+
+}
+
+// Called after all optimizations across sites takes place.
+lfunction prime.compute_likelihoods(site_results) {
+
+
+}
+
 

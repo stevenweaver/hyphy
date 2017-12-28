@@ -42,22 +42,25 @@ lfunction estimators.RestoreLFStateFromSnapshot(lf_id, snapshot) {
 
 /**
  * @name estimators.GetGlobalMLE
- * @param {Dictionary} results
- * @param {String} tag
- * @returns None
+ * Simple method that retrieves the maximum likelihood estimation from a global parameter
+ * @param {AssociativeList} results - results returned from estimators.ExtractMLEs
+ * @param {String} tag - parameter name
+ * @returns MLE if the results object is properly formatted, otherwise None
  */
 lfunction estimators.GetGlobalMLE(results, tag) {
+
     estimate = (results[ utility.getGlobalValue("terms.global")])[tag];
 
     if (Type(estimate) == "AssociativeList") {
-        return estimate[ utility.getGlobalValue("terms.fit.MLE")];
+        return estimate[utility.getGlobalValue("terms.fit.MLE")];
     }
+
     return None;
 }
 
 /**
  * @name estimators.GetBranchEstimates
- * @param {Dictionary} results
+ * @param {AssociativeList} results
  * @param {Number} partiton_index
  * @param {String} node_name
  * @returns None
@@ -76,7 +79,7 @@ lfunction estimators.GetBranchEstimates (results, partition_index, node_name) {
 /**
  * Extract global scope parameter estimates that match a regular expression
  * @name estimators.GetGlobalMLE_RegExp
- * @param {Dictionary} results
+ * @param {AssociativeList} results
  * @param {String} regular expression to match
  * @returns {Dict} parameter description : value (could be empty)
  */
@@ -133,7 +136,7 @@ function estimators.copyGlobals(key, value) {
  * @name estimators.CopyFrequencies
  * @private
  * @param {String} key
- * @param {Dictionary} value
+ * @param {AssociativeList} value
  * @returns nothing
  */
 function estimators.CopyFrequencies(model_name, model_decription) {
@@ -209,7 +212,7 @@ function estimators.ExtractBranchInformation.copy_local(key, value) {
  * @param {String} type
  * @param {String} node
  * @param {String} model
- * @returns {Dictionary} branch information
+ * @returns {AssociativeList} branch information
  */
 function estimators.ExtractBranchInformation(tree, node, model) {
     estimators.extractBranchLength.result = {};
@@ -263,9 +266,9 @@ function estimators.fixSubsetOfEstimates.helper_condition(key) {
 /**
  * @name estimators.fixSubsetOfEstimates
  * Loops through global variables from model fitting results, and assigns 'fix-me' to all parameters that are not constrained.
- * @param {Dictionary} estimates
- * @param {Dictionary} variables - Unused. TODO: Remove parameter
- * @returns {Dictionary} list of variables that were fixed
+ * @param {AssociativeList} estimates
+ * @param {AssociativeList} variables - Unused. TODO: Remove parameter
+ * @returns {AssociativeList} list of variables that were fixed
  * { 
  *   "0":"feAEdmai.model.theta_AC",
  *   "1":"feAEdmai.model.theta_AT",
@@ -374,8 +377,8 @@ function estimators.branch_lengths_in_string(tree_id, lookup) {
 
 /**
  * @name estimators.ExtractMLEs
- * @param {String} likelihood_function_id
- * @param {String} model_descriptions
+ * @param {String} likelihood_function_id - the name of the LikelihoodFunction object
+ * @param {String} model_descriptions - 
  * @returns results
  */
 function estimators.ExtractMLEs(likelihood_function_id, model_descriptions) {
@@ -423,7 +426,7 @@ function estimators.ExtractMLEs(likelihood_function_id, model_descriptions) {
 /**
  * @name estimators.TraverseLocalParameters
  * @param {String} likelihood_function_id
- * @param {Dictionary} model_descriptions
+ * @param {AssociativeList} model_descriptions
  * @param {String} callback (tree, node, parameter_list)
 
  */
@@ -447,7 +450,7 @@ lfunction estimators.TraverseLocalParameters (likelihood_function_id, model_desc
 /**
  * @name estimators.ApplyExistingEstimates
  * @param {String} likelihood_function_id - a string that is a reference to a previously defined LikelihoodFunction variable
- * @param {Dictionary} model_descriptions - A dictionary of previously defined models to set the estimators to
+ * @param {AssociativeList} model_descriptions - A dictionary of previously defined models to set the estimators to
  * @param {AssociativeList} initial_values - initial values coming from a
  * previous maximum likelihood estimation run such as to estimators.FitMGREV or estimators.FitGTR
  * @param {String} branch_length_conditions - 
@@ -541,7 +544,7 @@ function estimators.ApplyExistingEstimates(likelihood_function_id, model_descrip
  * @name estimators._aux.countEmpiricalParameters
  * @private
  * @param {String} id
- * @param {Dictionary} model
+ * @param {AssociativeList} model
  * @returns nothing
  */
 function estimators._aux.countEmpiricalParameters(id, model) {
@@ -832,16 +835,16 @@ function estimators.FitMGREVExtractComponentBranchLengths(codon_data, fit_result
 /**
  * @name estimators.FitMGREV
  * Conducts maximum likelihood calculations using the MG94xREV model.
- * @param {Dictionary} codon_data - list of filter names that are already defined and stored in memory
+ * @param {AssociativeList} codon_data - list of filter names that are already defined and stored in memory
  * {
  *   "0":"prime.filter.default"
  * }
- * @param {Dictionary} tree - tree information. Typically comes from load_file operation. 
+ * @param {AssociativeList} tree - tree information. Typically comes from load_file operation. 
  *                                              More information can be found under libv3/tasks/trees.bf
  * @param {String} genetic_code
- * @param {Dictionary} option
- * @param {Dictionary} initial_values - values that come from an initial estimate. Either results from GTR or other previous model fitting.
- * @returns {Dictionary} results
+ * @param {AssociativeList} option
+ * @param {AssociativeList} initial_values - values that come from an initial estimate. Either results from GTR or other previous model fitting.
+ * @returns {AssociativeList} results
  * @example
  * 
  */

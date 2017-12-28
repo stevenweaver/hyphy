@@ -9,9 +9,10 @@ LoadFunctionLibrary("../../UtilityFunctions.bf");
 /**
  * @name models.codon.MG_REV.ModelDescription
  * @param {String} type
- * @param {String} code
+ * @param {String} code - genetic code id, see genetic_code for a list of options
  */
 lfunction models.codon.MG_REV.ModelDescription(type, code) {
+
     codons = models.codon.MapCode(code);
 
     return {

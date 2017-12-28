@@ -234,7 +234,6 @@ parameters.DeclareGlobal (fel.scalers, {});
 lfunction fel.handle_a_site (lf, filter_data, partition_index, pattern_info, model_mapping) {
 
 
-
     GetString (lfInfo, ^lf,-1);
     ExecuteCommands (filter_data);
     __make_filter ((lfInfo["Datafilters"])[0]);
@@ -420,10 +419,10 @@ for (fel.partition_index = 0; fel.partition_index < fel.partition_count; fel.par
                                         terms.globals_only);
 
 
-    fel.queue = mpi.CreateQueue ({"LikelihoodFunctions": {{"fel.site_likelihood"}},
-                                   "Models" : {{"fel.site.mg_rev"}},
-                                   "Headers" : {{"libv3/all-terms.bf"}},
-                                   "Variables" : {{"fel.srv"}}
+    fel.queue = mpi.CreateQueue ({terms.mpi.LikelihoodFunctions : {{"fel.site_likelihood"}},
+                                   terms.mpi.Models : {{"fel.site.mg_rev"}},
+                                   terms.mpi.Headers : {{"libv3/all-terms.bf"}},
+                                   terms.mpi.Variables : {{"fel.srv"}}
                                  });
 
 
@@ -478,9 +477,7 @@ selection.io.stopTimer (fel.json [terms.json.timers], "FEL analysis");
 
 
 
-
-
-
+fprintf(stdout, fel.json);
 io.SpoolJSON (fel.json, fel.codon_data_info[terms.json.json]);
 
 

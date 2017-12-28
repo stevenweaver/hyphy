@@ -367,10 +367,6 @@ selection.io.stopTimer (meme.json [terms.json.timers], "MEME analysis");
 io.SpoolJSON (meme.json, meme.codon_data_info[terms.json.json]);
 
 //----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------
 
 function meme.apply_proportional_site_constraint.fel (tree_name, node_name, alpha_parameter, beta_parameter, alpha_factor, beta_factor, branch_length) {
 
@@ -401,7 +397,6 @@ function meme.apply_proportional_site_constraint.bsrel (tree_name, node_name, al
 
 //----------------------------------------------------------------------------------------
 lfunction meme.compute_branch_EBF (lf_id, tree_name, branch_name, baseline) {
-// TODO: figure out why LFCompute fails if this is run as an `lfunction`
 
     parameter_name = "`tree_name`.`branch_name`." + ^"meme.branch_mixture";
     ^parameter_name = 1;
@@ -514,9 +509,8 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
         null = estimators.ExtractMLEs (lf_bsrel, model_mapping);
         null [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
 
-
-
     } else {
+
         null = alternative;
         utility.ForEach (^bsrel_tree_id, "_node_name_",
         '
@@ -529,6 +523,7 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
             }
         '
         );
+
     }
 
     return {"fel" : fel,
@@ -582,9 +577,10 @@ lfunction meme.store_results (node, result, arguments) {
                           0  // total branch length of tested branches
                       } };
 
-      //console.log ( estimators.GetGlobalMLE (result["alternative"], ^"meme.parameter_site_mixture_weight"));
+    // console.log ( estimators.GetGlobalMLE (result["alternative"], ^"meme.parameter_site_mixture_weight"));
 
-    if (None != result) { // not a constant site
+    // not a constant site
+    if (None != result) { 
 
 
         lrt = {utility.getGlobalValue("terms.LRT") : 2*((result[utility.getGlobalValue("terms.alternative")])[utility.getGlobalValue("terms.fit.log_likelihood")]-(result[utility.getGlobalValue("terms.null")])[utility.getGlobalValue("terms.fit.log_likelihood")])};
