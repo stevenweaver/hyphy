@@ -480,18 +480,22 @@ function estimators.ApplyExistingEstimates(likelihood_function_id, model_descrip
 
 
     if (Type(branch_length_conditions) == "String") {
+
         if (branch_length_conditions == terms.globals_only) {
             return estimators.ApplyExistingEstimates.df_correction;
         }
+
         assert("0", "Unsupported value for 'branch_length_conditions' in estimators.ApplyExistingEstimates");
         return 0;
+
     }
 
     estimators.ApplyExistingEstimates.keep_track_of_proportional_scalers = {};
 
     for (estimators.ApplyExistingEstimates.i = 0; estimators.ApplyExistingEstimates.i < estimators.ApplyExistingEstimates.partitions; estimators.ApplyExistingEstimates.i += 1) {
 
-        if (Type((initial_values[terms.branch_length])[estimators.ApplyExistingEstimates.i]) == "AssociativeList") { // have branch lengths for this partition
+        // have branch lengths for this partition
+        if (Type((initial_values[terms.branch_length])[estimators.ApplyExistingEstimates.i]) == "AssociativeList") { 
 
             _tree_name = (estimators.ApplyExistingEstimates.lfInfo[terms.fit.trees])[estimators.ApplyExistingEstimates.i];
 
@@ -499,15 +503,19 @@ function estimators.ApplyExistingEstimates(likelihood_function_id, model_descrip
             estimators.ApplyExistingEstimates.branch_names = Rows(estimators.ApplyExistingEstimates.map);
 
             for (estimators.ApplyExistingEstimates.b = 0; estimators.ApplyExistingEstimates.b < Abs(estimators.ApplyExistingEstimates.map); estimators.ApplyExistingEstimates.b += 1) {
+
                 _branch_name = estimators.ApplyExistingEstimates.branch_names[estimators.ApplyExistingEstimates.b];
 
-                if ((initial_values[terms.branch_length])[estimators.ApplyExistingEstimates.i] / _branch_name) { // have an entry for this branch name
+                // have an entry for this branch name
+                if ((initial_values[terms.branch_length])[estimators.ApplyExistingEstimates.i] / _branch_name) { 
                    _existing_estimate = ((initial_values[terms.branch_length])[estimators.ApplyExistingEstimates.i])[_branch_name];
 
                    if (Type(_existing_estimate) == "AssociativeList") {
+
                        _set_branch_length_to = (((initial_values[terms.branch_length])[estimators.ApplyExistingEstimates.i])[_branch_name])[terms.fit.MLE];
                         if (None != branch_length_conditions) {
                             if (Abs(branch_length_conditions)) {
+
                                 _application_type = branch_length_conditions[estimators.ApplyExistingEstimates.i];
 
                                 if (Type(_application_type) == "String") {
@@ -520,6 +528,7 @@ function estimators.ApplyExistingEstimates(likelihood_function_id, model_descrip
                         }
 
                         estimators.ApplyExistingEstimates.df_correction += estimators.applyBranchLength(_tree_name, _branch_name, model_descriptions[estimators.ApplyExistingEstimates.map[_branch_name]], _set_branch_length_to);
+
                     } else {
                         if (Type(_existing_estimate) != "Unknown") {
                             warning.log ("Incorrect type for the initial values object of for branch '" + _branch_name + "' : " + _existing_estimate);

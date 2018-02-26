@@ -146,9 +146,6 @@ meme.final_partitioned_mg_results = estimators.FitMGREV (meme.filter_names, meme
     terms.run_options.retain_lf_object: TRUE
 }, meme.partitioned_mg_results);
 
-
-
-
 io.ReportProgressMessageMD("MEME", "codon-refit", "* Log(L) = " + Format(meme.final_partitioned_mg_results[terms.fit.log_likelihood],8,2));
 meme.global_dnds = selection.io.extract_global_MLE_re (meme.final_partitioned_mg_results, "^" + terms.parameters.omega_ratio);
 utility.ForEach (meme.global_dnds, "_value_", 'io.ReportProgressMessageMD ("MEME", "codon-refit", "* " + _value_[terms.description] + " = " + Format (_value_[terms.fit.MLE],8,4));');
@@ -464,9 +461,13 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
 
     Optimize (results, ^lf_bsrel);
 
+    GetString   (lf_bsrel_info, ^lf_bsrel,-1);
+    fn = "/home/sweaver/meme_alternative.txt";
+    fprintf(fn, lf_bsrel_info);
+
+
     alternative = estimators.ExtractMLEs (lf_bsrel, model_mapping);
     alternative [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
-
 
     ancestral_info = ancestral.build (lf_bsrel,0,FALSE);
 
@@ -505,6 +506,7 @@ lfunction meme.handle_a_site (lf_fel, lf_bsrel, filter_data, partition_index, pa
 
         ^"meme.site_beta_plus" := ^"meme.site_alpha";
         Optimize (results, ^lf_bsrel);
+
 
         null = estimators.ExtractMLEs (lf_bsrel, model_mapping);
         null [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];

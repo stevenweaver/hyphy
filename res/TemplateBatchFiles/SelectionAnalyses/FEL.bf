@@ -152,19 +152,11 @@ fel.final_partitioned_mg_results = estimators.FitMGREV (fel.filter_names, fel.tr
     terms.run_options.retain_lf_object: TRUE
 }, fel.partitioned_mg_results);
 
-
-
-
-
-
 io.ReportProgressMessageMD("fel", "codon-refit", "* Log(L) = " + Format(fel.final_partitioned_mg_results[terms.fit.log_likelihood],8,2));
 fel.global_dnds = selection.io.extract_global_MLE_re (fel.final_partitioned_mg_results, "^" + terms.parameters.omega_ratio);
 utility.ForEach (fel.global_dnds, "_value_", 'io.ReportProgressMessageMD ("fel", "codon-refit", "* " + _value_[terms.description] + " = " + Format (_value_[terms.fit.MLE],8,4));');
 
-
-
 estimators.fixSubsetOfEstimates(fel.final_partitioned_mg_results, fel.final_partitioned_mg_results[terms.global]);
-
 
 //Store MG94 to JSON
 selection.io.json_store_lf_GTR_MG94 (fel.json,
@@ -181,13 +173,9 @@ utility.ForEachPair (fel.filter_specification, "_key_", "_value_",
                                              _key_,
                                              selection.io.extract_branch_info((fel.final_partitioned_mg_results[terms.branch_length])[_key_], "selection.io.branch.length"));');
 
-
-
-
 selection.io.stopTimer (fel.json [terms.json.timers], "Model fitting");
 
 // define the site-level likelihood function
-
 fel.site.mg_rev = model.generic.DefineModel("models.codon.MG_REV.ModelDescription",
         "fel_mg", {
             "0": parameters.Quote(terms.local),
@@ -260,8 +248,6 @@ lfunction fel.handle_a_site (lf, filter_data, partition_index, pattern_info, mod
     Optimize (results, ^lf);
 
     null = estimators.ExtractMLEs (lf, model_mapping);
-
-
     null [utility.getGlobalValue("terms.fit.log_likelihood")] = results[1][0];
 
     /*
@@ -380,6 +366,7 @@ lfunction fel.store_results (node, result, arguments) {
 fel.site_results = {};
 
 for (fel.partition_index = 0; fel.partition_index < fel.partition_count; fel.partition_index += 1) {
+
     fel.report.header_done = FALSE;
     fel.table_output_options[terms.table_options.header] = TRUE;
     model.ApplyModelToTree( "fel.site_tree", fel.trees[fel.partition_index], {terms.default : fel.site.mg_rev}, None);

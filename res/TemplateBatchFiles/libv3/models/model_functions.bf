@@ -33,12 +33,14 @@ lfunction model.GetParameters_RegExp(model, re) {
  * @param tree
  * @param model_list
  * @param rules
+ * @returns nothing
  */
 function model.ApplyModelToTree (id, tree, model_list, rules) {
 
 
 
     if (Type (rules) == "AssociativeList") {
+
         // this has the form
         // model id : list of branches to apply the model (as a string COLUMN matrix with branch names,
         // or a dictionary where keys are the branch names)
@@ -205,14 +207,61 @@ lfunction model.generic.get_rate_variation (model_spec) {
  * @param {AssociativeList} arguments - arguments that will be passed to the underlying model specification
  * @param {String} data_filter - the id of a data_filter to use. If using the helper function load_files, it will be located under the `filter_names` attribute.
  * @param estimator_type
- * @returns 
+ * @returns a model definition like the following
+    {
+     "alphabet":{
+      {"AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"}
+      },
+     "bases":{
+      {"A", "C", "G", "T"}
+      },
+     "stop":{
+      {"TAA", "TAG", "TGA"}
+      },
+     "type":"local",
+     "translation-table": {},
+     "description":"The Muse-Gaut 94 codon-substitution model coupled with the general time reversible (GTR) model of nucleotide substitution",
+     "canonical":0,
+     "reversible":1,
+     "Equilibrium frequency estimator":"Corrected 3x4 frequency estimator",
+     "parameters":{
+       "global":{
+         "Substitution rate from nucleotide A to nucleotide C":"prime_mg.theta_AC",
+         "Substitution rate from nucleotide A to nucleotide G":"prime_mg.theta_AG",
+         "Substitution rate from nucleotide A to nucleotide T":"prime_mg.theta_AT",
+         "Substitution rate from nucleotide C to nucleotide G":"prime_mg.theta_CG",
+         "Substitution rate from nucleotide C to nucleotide T":"prime_mg.theta_CT",
+         "Substitution rate from nucleotide G to nucleotide T":"prime_mg.theta_GT"
+        },
+       "local":{
+         "non-synonymous rate":"beta",
+         "synonymous rate":"alpha"
+        },
+       "empirical":9
+      },
+     "get-branch-length":"",
+     "set-branch-length":"models.codon.MG_REV.set_branch_length",
+     "constrain-branch-length":"models.generic.constrain_branch_length",
+     "frequency-estimator":"frequencies.empirical.corrected.CF3x4",
+     "q_ij":"models.codon.MG_REV._GenerateRate",
+     "time":"models.DNA.generic.Time",
+     "defineQ":"models.codon.MG_REV._DefineQ",
+     "post-definition":"models.generic.post.definition",
+     "data":{
+       "0":"prime.filter.default"
+      },
+     "Q":{},
+     "EFV":{},
+     "matrix-id":"prime_mg_Q",
+     "efv-id":"prime_mg_pi",
+     "ID":"prime_mg",
+     "branch-length-string":"0.06044504295300962*alpha*prime_mg.theta_GT+0.1140276117006573*alpha*prime_mg.theta_CT+0.09588747149433458*alpha*prime_mg.theta_CG+0.06076445575534371*alpha*prime_mg.theta_AT+0.1822612037959031*alpha*prime_mg.theta_AG+0.1115108572851386*alpha*prime_mg.theta_AC+0.1623873961551711*beta*prime_mg.theta_GT+0.3791159655747864*beta*prime_mg.theta_CT+0.2594723648330626*beta*prime_mg.theta_CG+0.195273056134212*beta*prime_mg.theta_AT+0.09626092169673799*beta*prime_mg.theta_AG+0.3066017268359144*beta*prime_mg.theta_AC"
+    } 
  */
 function model.generic.DefineModel (model_spec, id, arguments, data_filter, estimator_type) {
 
-
     // Basic model definition
     model.generic.DefineModel.model = utility.CallFunction (model_spec, arguments);
-
 
     // Add data filter information to model description
     models.generic.AttachFilter (model.generic.DefineModel.model, data_filter);
@@ -220,25 +269,20 @@ function model.generic.DefineModel (model_spec, id, arguments, data_filter, esti
     // Set Q field
     model.generic.DefineModel.model = Call (model.generic.DefineModel.model [terms.model.defineQ], model.generic.DefineModel.model, id);
 
-
     // Define type of frequency estimator
     if (estimator_type != None) {
         model.generic.DefineModel.model [terms.model.frequency_estimator] = estimator_type;
     }
-
 
     // Set EFV field
     model.generic.DefineModel.model = Call (model.generic.DefineModel.model [terms.model.frequency_estimator], model.generic.DefineModel.model,
                                                         id,
                                                         data_filter);
 
-
-
     // Define id's for frequencies, Q, and id
     model.generic.DefineModel.model [terms.model.matrix_id] = "`id`_" + terms.model.rate_matrix;
     model.generic.DefineModel.model [terms.model.efv_id] = "`id`_" + terms.model.efv_matrix;
     model.generic.DefineModel.model [terms.id] = id;
-
 
     parameters.StringMatrixToFormulas (model.generic.DefineModel.model [terms.model.matrix_id],model.generic.DefineModel.model[terms.model.rate_matrix]);
     
@@ -248,7 +292,6 @@ function model.generic.DefineModel (model_spec, id, arguments, data_filter, esti
         utility.SetEnvVariable (model.generic.DefineModel.model [terms.model.efv_id], model.generic.DefineModel.model[terms.efv_estimate]);
     }
             
-
     model.define_from_components (id,     model.generic.DefineModel.model [terms.model.matrix_id], model.generic.DefineModel.model [terms.model.efv_id], model.generic.DefineModel.model [terms.model.canonical]);
 
     if (Type (model.generic.DefineModel.model[terms.model.post_definition]) == "String") {
@@ -257,6 +300,7 @@ function model.generic.DefineModel (model_spec, id, arguments, data_filter, esti
     }
     
     return model.generic.DefineModel.model;
+
 }
 
 

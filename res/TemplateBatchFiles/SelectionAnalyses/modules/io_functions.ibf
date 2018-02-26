@@ -178,8 +178,23 @@ lfunction selection.io.report_dnds (distribution) {
 
 //------------------------------------------------------------------------------
 
+// TODO : Replace all instances with selection.io.regexExtractGlobalMLE
 lfunction selection.io.extract_global_MLE_re (fit, regexp) {
      matches = utility.Filter (utility.Keys(fit[utility.getGlobalValue("terms.global")]), "_tag_", "regexp.Find (_tag_, `&regexp`)");
+    //TODO: a single 'MLE' in the return line cannot be replaced by terms.
+     return utility.Map (matches, "_tag_", "{utility.getGlobalValue('terms.description'): _tag_, 'MLE' : ((`&fit`[utility.getGlobalValue('terms.global')])[_tag_])[utility.getGlobalValue('terms.fit.MLE')]}");
+}
+
+/**
+ * @name selection.io.regexExtractGlobalMLE
+ * Extracts global MLEs based on a regular expression
+ * @param {AssociativeList} fit - the AssociativeList returned from a model fit (for example, what is returned from estimators.FitMGREV)
+ * @param {String} regexp - the regular expression to search keys 
+ * @example selection.io.regexExtractGlobalMLE(meme.final_partitioned_mg_results, "omega");
+ * @returns {AssociativeList} all values that match the regular expression
+ */
+lfunction selection.io.regexExtractGlobalMLE(fit, regexp) {
+     matches = utility.Filter(utility.Keys(fit[utility.getGlobalValue("terms.global")]), "_tag_", "regexp.Find (_tag_, `&regexp`)");
     //TODO: a single 'MLE' in the return line cannot be replaced by terms.
      return utility.Map (matches, "_tag_", "{utility.getGlobalValue('terms.description'): _tag_, 'MLE' : ((`&fit`[utility.getGlobalValue('terms.global')])[_tag_])[utility.getGlobalValue('terms.fit.MLE')]}");
 }
@@ -227,7 +242,7 @@ function selection.io.json_store_lf(json, name, ll, df, ss, rate_distribution, d
 
 //------------------------------------------------------------------------------
 
-
+// TODO : Replace all instances with selection.io.formatMG94ResultsToJSON
 function selection.io.json_store_lf_GTR_MG94 (json, name, ll, df, ss, rate_distribution, frequencies, display_order) {
 
     utility.EnsureKey(json, terms.json.fits);
@@ -243,8 +258,44 @@ function selection.io.json_store_lf_GTR_MG94 (json, name, ll, df, ss, rate_distr
 
 }
 
+/**
+ * @name selection.io.formatMG94ResultsToJSON
+ * Initial formatting for eventual JSON results output
+ * @param {AssociativeList} json - receptacle variable to store to
+ * @param {String} name - receptacle variable to store to
+ * @param {Number} ll - log likelihood fit
+ * @param {Number} df - degrees of freedom
+ * @param {Number} ss - sample size (typically sites * sequences)
+ * @param {AssociativeList} rate_distribution - global dn/ds rate distribution
+ * @param {AssociativeList} frequencies - equilibrium frequencies
+ * @param {AssociativeList} display_order - display order
+ * @example selection.io.regexExtractGlobalMLE(meme.final_partitioned_mg_results, "omega");
+ * @returns Nothing, stores to receptacle <json>
+ * @example 
+ * selection.io.formatMG94ResultsToJSON(prime.json,
+ *                          terms.json.global_mg94xrev,
+ *                          prime.final_partitioned_mg_results[terms.fit.log_likelihood],
+ *                          prime.final_partitioned_mg_results[terms.parameters],
+ *                          prime.sample_size,
+ *                          utility.ArrayToDict (utility.Map (prime.global_dnds, "_value_", "{'key': _value_[terms.description], 'value' : Eval({{_value_ [terms.fit.MLE],1}})}")),
+ *                          (prime.final_partitioned_mg_results[terms.efv_estimate])["VALUEINDEXORDER"][0],
+ *                          prime.display_orders[terms.json.global_mg94xrev]);
+ *
+ */
+function selection.io.formatMG94ResultsToJSON(json, name, ll, df, ss, rate_distribution, frequencies, display_order) {
 
+    utility.EnsureKey(json, terms.json.fits);
 
+    selection.io.json_store_key_value_pair(json, terms.json.fits, name, {
+            terms.json.log_likelihood: ll,
+            terms.json.parameters: df,
+            terms.json.AICc: selection.io.getIC(ll, df, ss),
+            terms.json.frequencies: frequencies,
+            terms.json.rate_distribution: rate_distribution,
+            terms.json.display_order: display_order
+    });
+
+}
 
 //------------------------------------------------------------------------------
 

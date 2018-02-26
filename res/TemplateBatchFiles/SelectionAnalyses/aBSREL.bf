@@ -664,8 +664,6 @@ lfunction absrel.BS_REL.ModelDescription (type, code, components) {
     return model;
 }
 
-
-
 //------------------------------------------------------------------------------
 
 lfunction absrel.BS_REL._GenerateRate (fromChar, toChar, namespace, model_type, _tt, alpha, alpha_term, beta, beta_term, omega, omega_term) {

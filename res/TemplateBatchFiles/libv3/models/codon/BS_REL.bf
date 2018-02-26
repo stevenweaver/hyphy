@@ -52,8 +52,6 @@ lfunction models.codon.BS_REL.ModelDescription(type, code, components) {
     };
 }
 
-
-
 /**
  * @name models.codon.BS_REL_Per_Branch_Mixing.ModelDescription
  * @param {String} type
@@ -104,10 +102,7 @@ lfunction models.codon.BS_REL_Per_Branch_Mixing._DefineQ(bs_rel, namespace) {
     
        if ( component < bs_rel[utility.getGlobalValue("terms.model.components")]) {
             model.generic.AddLocal ( bs_rel, _aux[component-1], terms.AddCategory (utility.getGlobalValue("terms.mixture.mixture_aux_weight"), component ));
-
-            // It looks as though this is the only place that differs between Per_Branch_Mixing and BS_REL
             parameters.SetRange (_aux[component-1], utility.getGlobalValue("terms.range_almost_01"));
-
         }
     }
 
