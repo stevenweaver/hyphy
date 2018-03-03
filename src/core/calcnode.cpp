@@ -788,6 +788,9 @@ bool        _CalcNode::NeedNewCategoryExponential(long catID) const
     return false;
 }
 
+//#define _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL 12733
+#//define _UBER_VERBOSE_MX_UPDATE_DUMP 1
+
 //_______________________________________________________________________________________________
 bool        _CalcNode::RecomputeMatrix  (long categID, long totalCategs, _Matrix* storeRateMatrix, _List* queue, _SimpleList* tags, _List* bufferedOps)
 {
@@ -832,7 +835,7 @@ bool        _CalcNode::RecomputeMatrix  (long categID, long totalCategs, _Matrix
                     locVar = LocateVar (iVariables->lData[i]);
                     curVar->SetValue(locVar->Compute());
                     #ifdef _UBER_VERBOSE_MX_UPDATE_DUMP
-                      if (1 || likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL) {
+                      if (likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL) {
                         fprintf (stderr, "[_CalcNode::RecomputeMatrix] Node %s, var %s, value = %15.12g\n", GetName()->sData, curVar->GetName()->sData, curVar->Compute()->Value());
                       }
                     #endif
@@ -847,7 +850,7 @@ bool        _CalcNode::RecomputeMatrix  (long categID, long totalCategs, _Matrix
                     locVar = LocateVar (dVariables->lData[i]);
                     curVar->SetValue(locVar->Compute());
                     #ifdef _UBER_VERBOSE_MX_UPDATE_DUMP
-                      if (1 || likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL) {
+                      if (likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL) {
                         fprintf (stderr, "[_CalcNode::RecomputeMatrix] Node %s, var %s, value = %15.12g\n", GetName()->sData, curVar->GetName()->sData, curVar->Compute()->Value());
                       }
                     #endif
@@ -855,7 +858,7 @@ bool        _CalcNode::RecomputeMatrix  (long categID, long totalCategs, _Matrix
             }
     
     #ifdef _UBER_VERBOSE_MX_UPDATE_DUMP
-      if (1|| likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL && gVariables) {
+      if (likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL && gVariables) {
         for (unsigned long i=0; i<gVariables->lLength; i++) {
           _Variable* curVar = LocateVar(gVariables->GetElement(i));
           fprintf (stderr, "[_CalcNode::RecomputeMatrix] Node %s, var %s, value = %15.12g\n", GetName()->sData, curVar->GetName()->sData, curVar->Compute()->Value());
@@ -893,7 +896,9 @@ bool        _CalcNode::RecomputeMatrix  (long categID, long totalCategs, _Matrix
     if (isExplicitForm && bufferedOps) {
         _Matrix * bufferedExp = (_Matrix*)GetExplicitFormModel()->Compute (0,nil, bufferedOps);
         #ifdef _UBER_VERBOSE_MX_UPDATE_DUMP
-            fprintf (stderr, "[_CalcNode::RecomputeMatrix] Setting (buffered) category %ld/%ld for node %s\n", categID, totalCategs, GetName()->sData);
+            if (likeFuncEvalCallCount == _UBER_VERBOSE_MX_UPDATE_DUMP_LF_EVAL) {
+                fprintf (stderr, "[_CalcNode::RecomputeMatrix] Setting (buffered) category %ld/%ld for node %s\n", categID, totalCategs, GetName()->sData);
+            }
          #endif
         SetCompExp ((_Matrix*)bufferedExp->makeDynamic(), totalCategs>1?categID:-1);
         return false;
@@ -1264,46 +1269,68 @@ void    _TheTree::PostTreeConstructor (bool dupMe)
 
 void    _TreeTopology::PostTreeConstructor (bool dupMe) {
   
+    auto variable_handler = [&] (void) -> void {
+        BaseRef temp =  variablePtrs(theIndex);
+        variablePtrs[theIndex]=dupMe ? this->makeDynamic() : this;
+        DeleteObject(temp);
+    };
+    
   double acceptRTs = 0.0;
   checkParameter (acceptRootedTrees,acceptRTs, 0.0);
-  
-  if (theRoot->get_num_nodes() == 2) { // rooted tree - check
+    
+  if (theRoot->get_num_nodes() <= 2) { // rooted tree - check
     if (acceptRTs<0.1) {
       int  i = 1;
       long node_index = theRoot->get_data();
-      for (; i<=2; i++) {
-        node<long> *node_temp = theRoot->go_down(i);
-        if (node_temp->get_num_nodes()) { // an internal node - make it a root
-          node_temp->detach_parent();
-          if (i==1) {
+      bool recurse = false;
+    
+      if (theRoot->get_num_nodes() == 2) {
+          for (; i<=2; i++) {
+            node<long> *node_temp = theRoot->go_down(i);
+            if (node_temp->get_num_nodes()) { // an internal node - make it a root
+              node_temp->detach_parent();
+              if (i==1) {
+                node_temp->add_node(*theRoot->go_down(2));
+                delete theRoot;
+                theRoot = node_temp;
+                rooted = ROOTED_LEFT;
+              } else {
+                node_temp->prepend_node(*theRoot->go_down(1));
+                delete theRoot;
+                theRoot = node_temp;
+                rooted = ROOTED_RIGHT;
+              }
+              if (i==1) {
+                ReportWarning (_String("Rooted topology. Removing one branch - the left root child has been promoted to be the new root"));
+              } else {
+                ReportWarning (_String("Rooted topology. Removing one branch - the right root child has been promoted to be the new root"));
+              }
+              break;
+            }
+          }
+          if (i==3) {
+            ReportWarning ((_String("One branch topology supplied - hopefully this IS what you meant to do.")));
+            node<long> *node_temp = theRoot->go_down(1);
+            node_temp->detach_parent();
             node_temp->add_node(*theRoot->go_down(2));
             delete theRoot;
             theRoot = node_temp;
             rooted = ROOTED_LEFT;
-          } else {
-            node_temp->prepend_node(*theRoot->go_down(1));
-            delete theRoot;
-            theRoot = node_temp;
-            rooted = ROOTED_RIGHT;
+            ReportWarning (_String("Rooted tree. Removing one branch - the left root child has been promoted to be the new root"));
+              //PurgeTree();
           }
-          if (i==1) {
-            ReportWarning (_String("Rooted topology. Removing one branch - the left root child has been promoted to be the new root"));
-          } else {
-            ReportWarning (_String("Rooted topology. Removing one branch - the right root child has been promoted to be the new root"));
+      } else {
+          if (theRoot->get_num_nodes() == 0) {
+              ReportWarning ("An empty topology has been constructed");
+              variable_handler ();
+              return;
           }
-          break;
-        }
-      }
-      if (i==3) {
-        ReportWarning ((_String("One branch topology supplied - hopefully this IS what you meant to do.")));
-        node<long> *node_temp = theRoot->go_down(1);
-        node_temp->detach_parent();
-        node_temp->add_node(*theRoot->go_down(2));
-        delete theRoot;
-        theRoot = node_temp;
-        rooted = ROOTED_LEFT;
-        ReportWarning (_String("Rooted tree. Removing one branch - the left root child has been promoted to be the new root"));
-          //PurgeTree();
+          node<long> *node_temp = theRoot->go_down(1);
+          node_temp->detach_parent();
+          delete theRoot;
+          theRoot = node_temp;
+          ReportWarning ("The root has a single child, which is be promoted to the root");
+          recurse = true;
       }
  
       flatTree.Delete (node_index);
@@ -1316,12 +1343,14 @@ void    _TreeTopology::PostTreeConstructor (bool dupMe) {
           topTraverser->init (topTraverser->get_data () - 1);
         }
       }
+        
+      if (recurse) {
+          PostTreeConstructor (dupMe);
+          return;
+      }
     }
   }
-  
-  BaseRef temp =  variablePtrs(theIndex);
-  variablePtrs[theIndex]=dupMe ? this->makeDynamic() : this;
-  DeleteObject(temp);
+  variable_handler ();
 }
 
 
@@ -1736,7 +1765,7 @@ bool    _TheTree::FinalizeNode (node<long>* nodie, long number , _String nodeNam
             bool setDef = true;
             if (autoSolveBranchLengths) {
                 long nodeModelID = cNt.GetModelIndex();
-                if (nodeModelID != HY_NO_MODEL) {
+                if (nodeModelID != HY_NO_MODEL && !IsModelOfExplicitForm(nodeModelID)) {
                     _Formula * expressionToSolveFor = nil;
                     long alreadyConverted = convertedMatrixExpressions.Find ((BaseRef)nodeModelID);
                     if (alreadyConverted < 0) {

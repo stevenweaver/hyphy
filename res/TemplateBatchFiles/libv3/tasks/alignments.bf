@@ -179,6 +179,25 @@ lfunction alignments.ReadNucleotideDataSet(dataset_name, file_name) {
 }
 
 /**
+ * Ensure that name mapping is not None by creating a f(x)=x map if needed
+ * @name alignments.EnsureMapping
+ * @param dataset_name - the name of the dataset you wish to use
+ * @param {Dictionary} r - metadata pertaining to the dataset
+ * @param file_name - path to file
+ * @returns {Dictionary} r - metadata pertaining to the dataset
+ */
+ 
+lfunction alignments.EnsureMapping(dataset_name, data) {
+    name_mapping = data[utility.getGlobalValue("terms.data.name_mapping")];
+    if (None == name_mapping) { /** create a 1-1 mapping if nothing was done */
+        name_mapping = {};
+        utility.ForEach (alignments.GetSequenceNames (dataset_name), "_value_", "`&name_mapping`[_value_] = _value_");
+        data[utility.getGlobalValue("terms.data.name_mapping")] = name_mapping;
+    }    
+    return data;
+}
+
+/**
  * Read dataset from data
  * @name alignments.ReadNucleotideDataSetString
  * @param {String} dataset_name - the name of the dataset you wish to use
@@ -246,6 +265,38 @@ function alignments.ReadNucleotideAlignment(file_name, dataset_name, datafilter_
     data_info[terms.data.datafilter] = datafilter_name;
 
     return data_info;
+}
+
+/**
+ * Take an input filter, replace all identical sequences with a single copy
+ * Optionally, rename the sequences to indicate copy # by adding ':copies'
+ * @name alignments.CompressDuplicateSequences
+ * @param {String} filter_in - The name of an existing filter
+ * @param {String} filter_out - the name  (to be created) of the filter where the compressed sequences will go)
+ * @param {Bool} rename - if true, rename the sequences
+ * @returns the number of unique sequences
+ */
+lfunction alignments.CompressDuplicateSequences (filter_in, filter_out, rename) {
+    GetDataInfo (duplicate_info, ^filter_in, -2);
+    
+    DataSetFilter ^filter_out = CreateFilter (^filter_in, 1, "", Join (",", duplicate_info["UNIQUE_INDICES"]));
+    
+    if (rename) {
+        utility.ForEachPair (duplicate_info["UNIQUE_INDICES"],
+                             "_idx_",
+                             "_seq_idx_",
+                             '
+                                GetString (_seq_name_, ^`&filter_in`, _seq_idx_);
+                                _seq_name_ += ":" + ((`&duplicate_info`)["UNIQUE_COUNTS"])[_idx_[1]];
+                                SetParameter (^`&filter_in`,_seq_idx_,_seq_name_);
+                              ');
+       
+    } 
+    
+    
+    
+    return duplicate_info["UNIQUE_SEQUENCES"];
+    //DataSetFilter ^filter_out = CreateFilter (filter_in);
 }
 
 /**
@@ -338,6 +389,62 @@ lfunction alignments.TranslateCodonsToAminoAcids (sequence, offset, code) {
 	    }
 	}
 	translation * 0;
+	return translation;
+}
+
+/**
+ * @name alignments.TranslateCodonsToAminoAcidsWithAmbigs
+ * Translate a codon sequence to amino-acids using the mapping provided by the
+ * genetic code
+ * @param {String} sequence - the string to translate
+ * @param {Number} offset - start at this position (should be in {0,1,2})
+ * @param {Dictionary} code - genetic code description (e.g. returned by alignments.LoadGeneticCode)
+ * @param {lookup} code - resolution lookup dictionary 
+ * @returns {Dict} list of possible amino-acids (as dicts) at this position
+ */
+
+lfunction alignments.TranslateCodonsToAminoAcidsWithAmbiguities (sequence, offset, code, lookup) {
+    console.log (sequence);
+    
+    l = Abs (sequence);
+	translation = {};
+    
+    DataSet single_seq                  = ReadFromString (">s\n" + sequence[offset][Abs (sequence)-1]);
+    DataSetFilter single_seq_filter     = CreateFilter   (single_seq, 3, "", "");
+    
+    GetDataInfo (patterns, single_seq_filter);
+    GetDataInfo (alphabet, single_seq_filter, "CHARACTERS");
+    GetDataInfo (single_seq_data, single_seq_filter, 0);
+    code_lookup = code [utility.getGlobalValue("terms.code.ordering")];
+    code_table  = code [utility.getGlobalValue("terms.code")];
+    
+    for (s = 0; s < single_seq_filter.sites; s += 1) {
+        codon = single_seq_data[3*s][3*s+2];
+        if (lookup / codon) {
+            translation[s] = lookup [codon];
+        } else {
+            GetDataInfo (resolutions, single_seq_filter, 0, patterns[s]);
+            resolution_count = +resolutions;
+            my_resolution = {};
+            if (resolution_count == 1) {
+                my_resolution [code_lookup[code_table[(Max (resolutions, 1))[1]]]] = 1;
+            } else {
+                if (resolution_count == 0 || resolution_count == 64) {
+                    my_resolution["-"] = 1;
+                } else {
+                    for (r = 0; r < 64; r += 1) {
+                        if (resolutions[r]) {
+                            my_resolution [code_lookup[code_table[r]]] = 1;
+                        }
+                    }
+                }
+            }
+            lookup [codon] = my_resolution;
+            translation[s] = my_resolution;
+        }
+    }
+    
+    
 	return translation;
 }
 

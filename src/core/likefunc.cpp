@@ -56,7 +56,7 @@
 
 using namespace hyphy_global_objects;
 
-  //#define _UBER_VERBOSE_LF_DEBUG 1
+//#define _UBER_VERBOSE_LF_DEBUG 1
 
 //#define    _COMPARATIVE_LF_DEBUG_DUMP
 //#define    _COMPARATIVE_LF_DEBUG_CHECK
@@ -289,7 +289,6 @@ dataSetList,
 likeFuncList;
 
 bool        CheckOneDStep   (_Parameter&,_Parameter,_Parameter);
-bool        CheckEqual      (_Parameter, _Parameter);
 
 _Variable*  siteWiseVar     = nil,
             *  blockWiseVar = nil;
@@ -753,6 +752,15 @@ void     _LikelihoodFunction::Rebuild (bool rescan_parameters) {
 
 //_______________________________________________________________________________________
 
+void     _LikelihoodFunction::UnregisterListeners (void) {
+    unsigned long partition_count = CountObjects(kLFCountPartitions);
+    for (unsigned long i = 0UL; i < partition_count; i++) {
+        UnregisterChangeListenerForDataFilter(theDataFilters.GetElement(i), this);
+    }
+}
+    
+//_______________________________________________________________________________________
+
 void     _LikelihoodFunction::Clear (void)
 {
     DeleteCaches  ();
@@ -760,10 +768,7 @@ void     _LikelihoodFunction::Clear (void)
     unsigned long partition_count = CountObjects(kLFCountPartitions);
   
     theTrees.Clear();
-  
-    for (unsigned long i = 0UL; i < partition_count; i++) {
-        UnregisterChangeListenerForDataFilter(theDataFilters.GetElement(i), this);
-    }
+    UnregisterListeners ();
   
     theDataFilters.Clear();
     theProbabilities.Clear();
@@ -1954,13 +1959,16 @@ _Parameter  _LikelihoodFunction::Compute        (void)
 
     bool done = false;
 #ifdef _UBER_VERBOSE_LF_DEBUG
-    fprintf (stderr, "\n*** Likelihood function evaluation %ld ***\n", likeFuncEvalCallCount+1);
-    for (unsigned long i=0; i<indexInd.lLength; i++) {
-        _Variable *v = LocateVar (indexInd.lData[i]);
-        if (v->HasChanged()) {
-          fprintf (stderr, "[CHANGED] ");
+    
+    if (likeFuncEvalCallCount >= 12731) {
+        fprintf (stderr, "\n*** Likelihood function evaluation %ld ***\n", likeFuncEvalCallCount+1);
+        for (unsigned long i=0; i<indexInd.lLength; i++) {
+            _Variable *v = LocateVar (indexInd.lData[i]);
+            if (v->HasChanged()) {
+              fprintf (stderr, "[CHANGED] ");
+              fprintf (stderr, "%s = %15.12g\n", v->GetName()->sData, v->theValue);
+            }
         }
-        fprintf (stderr, "%s = %15.12g\n", v->GetName()->sData, v->theValue);
     }
 #endif
     if (computeMode == 0 || computeMode == 3) {
@@ -2161,6 +2169,16 @@ _Parameter  _LikelihoodFunction::Compute        (void)
         if (isnan (result)) {
             ReportWarning ("Likelihood function evaluation encountered a NaN (probably due to a parameterization error or a bug).");
             return -A_LARGE_NUMBER;
+        }
+        
+        if (result >= 0.) {
+            if (result >= __DBL_EPSILON__ * 1.e4) {
+                char buffer [2048];
+                snprintf (buffer, 2047, "Internal error: Encountered a positive log-likelihood (%g) at evaluation %ld, mode %ld, template %ld", likeFuncEvalCallCount-1, result, computeMode, templateKind);
+                WarnError (buffer);
+            } else {
+                result = 0.;
+            }
         }
         
         ComputeParameterPenalty ();
@@ -4234,10 +4252,10 @@ DecideOnDivideBy (this);
                     
                     if (gradientBlocks.lLength) {
                         for (long b = 0; b < gradientBlocks.lLength; b++) {
-                            ConjugateGradientDescent (prec, bestMSoFar,true,10,(_SimpleList*)(gradientBlocks(b)),maxSoFar);
+                            maxSoFar = ConjugateGradientDescent (prec, bestMSoFar,true,10,(_SimpleList*)(gradientBlocks(b)),maxSoFar);
                         }
                     } else {
-                        ConjugateGradientDescent (prec, bestMSoFar,true,10,nil,maxSoFar);
+                        maxSoFar = ConjugateGradientDescent (prec, bestMSoFar,true,10,nil,maxSoFar);
                     }
                     
                     GetAllIndependent   (bestMSoFar);
@@ -4539,7 +4557,7 @@ DecideOnDivideBy (this);
                   if (!skipCG && loopCounter&& indexInd.lLength>1 && ( (((long)loopCounter)%indexInd.lLength)==0 )) {
                       _Matrix             bestMSoFar;
                       GetAllIndependent   (bestMSoFar);
-                      ConjugateGradientDescent (currentPrecision, bestMSoFar);
+                      maxSoFar = ConjugateGradientDescent (currentPrecision, bestMSoFar);
                       logLHistory.Store(maxSoFar);
                   }
             }
@@ -4556,7 +4574,7 @@ DecideOnDivideBy (this);
         if (optMethod == 7) {
             _Matrix bestMSoFar (indexInd.lLength,1,false,true);
             GetAllIndependent(bestMSoFar);
-            ConjugateGradientDescent (currentPrecision*.01, bestMSoFar);
+            maxSoFar = ConjugateGradientDescent (currentPrecision*.01, bestMSoFar);
         }
 
         DeleteObject (stepHistory);
@@ -4709,13 +4727,12 @@ inline  bool CheckOneDStep (_Parameter& val, _Parameter lB, _Parameter uB)
 }
 
 //_______________________________________________________________________________________
-bool CheckEqual (_Parameter a, _Parameter b)
-{
+bool CheckEqual (_Parameter a, _Parameter b, _Parameter tolerance) {
     if (a!=0.0) {
         a = (a>b)?(a-b)/a:(b-a)/a;
-        return a>0.0 ? a<=machineEps : a>=-machineEps;
+        return a>0.0 ? a<=tolerance : a>=-tolerance;
     }
-    return (b<=machineEps)&&(b>=-machineEps);
+    return (b<=tolerance)&&(b>=-tolerance);
 }
 
 //_______________________________________________________________________________________
@@ -5013,16 +5030,16 @@ long    _LikelihoodFunction::Bracket (long index, _Parameter& left, _Parameter& 
 
     if (curVar) {
         if (CheckAndSetIthIndependent(index,middle)) {
-          CheckAndSetIthIndependent(index,left);
+          /*CheckAndSetIthIndependent(index,left);
           _Parameter lc = Compute();
           CheckAndSetIthIndependent(index,right);
           _Parameter rc = Compute();
-          CheckAndSetIthIndependent(index,middle);
+          CheckAndSetIthIndependent(index,middle);*/
            middleValue = Compute();
           
            if (verbosityLevel > 100) {
               char buf [256];
-              snprintf (buf, 256, "\n\t[_LikelihoodFunction::Bracket (index %ld) recomputed the value to midpoint: L(%g) = %g [%g/%g:%g%g]]", index, middle, middleValue, leftValue,lc, rightValue,rc);
+              snprintf (buf, 256, "\n\t[_LikelihoodFunction::Bracket (index %ld) recomputed the value to midpoint: L(%g) = %g [@%g -> %g:@%g -> %g]]", index, middle, middleValue, left, leftValue,right, rightValue);
               BufferToConsole (buf);
                //exit (0);
             }
@@ -5741,7 +5758,7 @@ bool    _LikelihoodFunction::SniffAround (_Matrix& values, _Parameter& bestSoFar
 
 //_______________________________________________________________________________________
 
-void    _LikelihoodFunction::ConjugateGradientDescent (_Parameter precision, _Matrix& bestVal, bool localOnly, long iterationLimit, _SimpleList* only_these_parameters, _Parameter check_value) {
+_Parameter    _LikelihoodFunction::ConjugateGradientDescent (_Parameter precision, _Matrix& bestVal, bool localOnly, long iterationLimit, _SimpleList* only_these_parameters, _Parameter check_value) {
 
     _Parameter  gradientStep     = STD_GRAD_STEP,
                 temp,
@@ -5758,7 +5775,7 @@ void    _LikelihoodFunction::ConjugateGradientDescent (_Parameter precision, _Ma
                     ReportWarning (_String ((_String*)optimizatonHistory->toStr()));
                 }
                 WarnError (errorStr);
-                return;
+                return check_value;
             }
             //return;
         }
@@ -5863,7 +5880,7 @@ void    _LikelihoodFunction::ConjugateGradientDescent (_Parameter precision, _Ma
             }
 
             if (terminateExecution) {
-                return;
+                return check_value;
             }
         }
     }
@@ -5872,11 +5889,14 @@ void    _LikelihoodFunction::ConjugateGradientDescent (_Parameter precision, _Ma
     if (maxSoFar < initial_value && CheckEqual(maxSoFar, initial_value) == false) {
         WarnError (_String("Internal optimization error in _LikelihoodFunction::ConjugateGradientDescent. Worsened likelihood score from ") & initial_value & " to " & maxSoFar);
     }
+  
 
     if (vl>1) {
         BufferToConsole("\n");
     }
-
+  
+    return maxSoFar;
+  
 }
 
 //_______________________________________________________________________________________
@@ -6204,8 +6224,8 @@ void    _LikelihoodFunction::GradientDescent (_Parameter& gPrecision, _Matrix& b
            brentHistory.Store (-FX-initialValue);*/
         }
         
-        if (maxSoFar < initialValue && !CheckEqual (maxSoFar, initialValue)) {
-          WarnError (_String ("Internal error in  _LikelihoodFunction::GradientLocateTheBump: in the Brent loop iteration ") & long(outcome) & ". " & maxSoFar & " / " & initialValue & ".\n");// & _String ((_String*)brentHistory.toStr()));
+        if (maxSoFar < initialValue && !CheckEqual (maxSoFar, initialValue, 10. * machineEps)) {
+          WarnError (_String ("Internal error in  _LikelihoodFunction::GradientLocateTheBump: in the Brent loop iteration ") & long(outcome) & ". " & _String (maxSoFar, "%15.12g") & " / " & _String (initialValue,"%15.12g") & ".\n");// & _String ((_String*)brentHistory.toStr()));
           return;
         }
         
@@ -7767,7 +7787,7 @@ _Parameter  _LikelihoodFunction::ComputeBlock (long index, _Parameter* siteRes, 
                                                     (_GrowingVector*)conditionalTerminalNodeLikelihoodCaches(index),
                                                     overallScalingFactors.lData[index],
                                                     blockID * sitesPerP,
-                                                    (1+blockID) * sitesPerP,
+                                                    (1L+blockID) * sitesPerP,
                                                     catID,
                                                     siteRes,
                                                     scc,
@@ -7775,7 +7795,8 @@ _Parameter  _LikelihoodFunction::ComputeBlock (long index, _Parameter* siteRes, 
                                                     branchIndex >= 0 ? branchValues->lData: nil);
               }
          
-          
+
+            
             if (np > 1) {
               _Parameter correction = 0.;
               for (blockID = 0; blockID < np; blockID ++)  {
@@ -7785,12 +7806,34 @@ _Parameter  _LikelihoodFunction::ComputeBlock (long index, _Parameter* siteRes, 
                 sum = temp_sum;
               }
               
-              
             } else {
               sum = thread_results[0];
-              
             }
           
+            /*#ifdef _UBER_VERBOSE_LF_DEBUG
+            static _Parameter previous_results  [4096];
+            static long previous_scalers [4096];
+            
+                if (likeFuncEvalCallCount > 12050) {
+                    abort ();
+                }
+
+                if (likeFuncEvalCallCount > 12000) {
+                    fprintf (stderr, "Block sum %g\n", sum);
+                    for (long i = 0L; i < sitesPerP - 1; i++) {
+                        fprintf (stderr, "[%ld] site %ld \t %g (%g)  [delta %g]; scaler %ld (%ld)\n", catID, i, siteRes[i], previous_results [catID * sitesPerP + i], fabs(siteRes[i]-previous_results [catID * sitesPerP + i]), scc [i], previous_scalers [catID * sitesPerP + i]);
+                    }
+
+                }
+                if (likeFuncEvalCallCount >= 12000) {
+                    
+                    for (long i = 0L; i < sitesPerP - 1; i++) {
+                         previous_results [catID * sitesPerP + i] = siteRes[i];
+                         previous_scalers [catID * sitesPerP + i] = scc [i];
+                    }
+                }
+            #endif*/
+            
             delete [] thread_results;
             /*
             #pragma omp  parallel for default(shared) schedule(static,1) private(blockID) num_threads (np) reduction(+:sum) if (np>1)

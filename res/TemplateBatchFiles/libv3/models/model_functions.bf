@@ -6,11 +6,10 @@ LoadFunctionLibrary ("../convenience/regexp.bf");
 
 /** @module model */
 /**
- * @name model.ApplyModelToTree
- * @param id
- * @param tree
- * @param model_list
- * @param rules
+ * @name model.GetParameters_RegExp
+ * @param model {String} - model ID
+ * @param re {String} - regular expression 
+ * @return a dictionary of global model parameters that match a regexp
  */
 lfunction model.GetParameters_RegExp(model, re) {
 
@@ -56,10 +55,19 @@ function model.ApplyModelToTree (id, tree, model_list, rules) {
                               ");
 
 	    }
-
+	    
+	    /* 
+	    
+	    debug.log (tree);
+	    _t = Eval ("Format (`id`,1,1)");
+	    debug.log (_t);
+	    
+	    */
+	    
 	    model.ApplyModelToTree.ids = Rows (rules);
 	    for (model.ApplyModelToTree.k = 0; model.ApplyModelToTree.k < Abs (rules); model.ApplyModelToTree.k += 1) {
 	        model.ApplyModelToTree.name = model.ApplyModelToTree.ids[model.ApplyModelToTree.k];
+	        //debug.log (model.ApplyModelToTree.name);
 	        if ( model.ApplyModelToTree.name != "DEFAULT") {
                 model.ApplyModelToTree.list = rules[model.ApplyModelToTree.name];
                 if (Type (model.ApplyModelToTree.list) == "AssociativeList") {
@@ -74,7 +82,7 @@ function model.ApplyModelToTree (id, tree, model_list, rules) {
                 }
 
                 for (model.ApplyModelToTree.b = 0; model.ApplyModelToTree.b < Columns (model.ApplyModelToTree.list); model.ApplyModelToTree.b += 1) {
-                    //fprintf (stdout, "SetParameter (`id`." + model.ApplyModelToTree.list[model.ApplyModelToTree.b] + ",MODEL," + model.ApplyModelToTree.apply_model + ")", "\n");
+                    //debug.log ( "SetParameter (`id`." + model.ApplyModelToTree.list[model.ApplyModelToTree.b] + ",MODEL," + model.ApplyModelToTree.apply_model + ")");
                     ExecuteCommands ("SetParameter (`id`." + model.ApplyModelToTree.list[model.ApplyModelToTree.b] + ",MODEL," + model.ApplyModelToTree.apply_model + ")");
                 }
             }
@@ -326,6 +334,38 @@ function models.generic.post.definition  (model) {
         model [terms.model.branch_length_string] = models.generic.post.definition.bl;
     }
     return model;
+}
+
+/**
+ * @name models.generic.ConstrainBranchLength
+ * @param {Model} model
+ * @param {AssociativeList} or {Number} value
+ * @param {String} parameter
+ * @returns the number of constraints generated (0 or 1)
+ */
+function models.generic.ConstrainBranchLength (model, value, parameter) {
+    if (Type (value) == "Number") {
+        if (Abs((model[terms.parameters])[terms.local]) == 1) {
+            if (Type (model [terms.model.branch_length_string]) == "String") {
+                models.generic.ConstrainBranchLength.expression = model [terms.model.branch_length_string];
+                models.generic.ConstrainBranchLength.bl = (Columns ((model[terms.parameters])[terms.local]))[0];
+                models.generic.ConstrainBranchLength.bl.p = parameter + "." + models.generic.ConstrainBranchLength.bl;
+                models.generic.ConstrainBranchLength.substitution = {models.generic.ConstrainBranchLength.bl : 1};
+                models.generic.ConstrainBranchLength.expression = "(" + Simplify (models.generic.ConstrainBranchLength.expression, models.generic.ConstrainBranchLength.substitution) + ")";
+                Eval (models.generic.ConstrainBranchLength.bl.p + ":=" + value + "/" + models.generic.ConstrainBranchLength.expression);
+                messages.log ("models.generic.ConstrainBranchLength: " + models.generic.ConstrainBranchLength.bl.p + ":=" + value + "/" + models.generic.ConstrainBranchLength.expression);
+            } else {
+                messages.log ("models.generic.ConstrainBranchLength: model branch length expression not available");
+            }
+
+        }
+        else {
+            messages.log ("models.generic.ConstrainBranchLength: not exactly one local model parameter");
+        }
+    } else {
+         messages.log ("models.generic.ConstrainBranchLength: unsupported value type " + Type (value) + "\n" + value);    
+    }
+    return 0;
 }
 
 /**

@@ -537,6 +537,16 @@ lfunction console.log (arg) {
 }
 
 /**
+ * I am tired of having dangling console.log debug statements
+ * @returns nothing
+ */
+lfunction debug.log (arg) {
+    if (utility.GetEnvVariable ("_DEBUG_MESSAGES_ON_")) {
+        fprintf (stdout, arg, "\n");
+    }
+}
+
+/**
  * I am tired of typing fprintf (MESSAGE_LOG, ...)
  * @returns nothing
  */
@@ -663,6 +673,7 @@ lfunction io.ReadDelimitedFile  (path, separator, has_header) {
         fscanf (path, REWIND, "Lines", data);
    } else {
         fscanf (PROMPT_FOR_FILE, REWIND, "Lines", data);
+        path = utility.getGlobalValue("LAST_FILE_PATH");
    }
    result = {utility.getGlobalValue("terms.io.rows") : {}};
    index = 0;
@@ -674,6 +685,7 @@ lfunction io.ReadDelimitedFile  (path, separator, has_header) {
    for (k = index; k < row_count; k+=1) {
         result [utility.getGlobalValue("terms.io.rows")] + regexp.Split (data[k], separator);
    }
+   result[utility.getGlobalValue("terms.json.file")] = path;
    return result;
 }
 
