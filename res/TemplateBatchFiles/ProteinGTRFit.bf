@@ -24,8 +24,8 @@ LoadFunctionLibrary("ProteinGTRFit_helper.ibf");
 utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 
-utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
-
+//utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
+// default here is 0.001. 
 
 
 protein_gtr.analysis_banner = {
@@ -68,7 +68,6 @@ protein_gtr.timers = {};
 SetDialogPrompt ("Supply a list of files to include in the analysis (one per line)");
 fscanf (PROMPT_FOR_FILE, "Lines", protein_gtr.file_list);
 protein_gtr.listfile = utility.getGlobalValue("LAST_FILE_PATH");
-protein_gtr.json_file = protein_gtr.listfile  + ".json";
 protein_gtr.final_likelihood_function = protein_gtr.listfile  + "_Final-Phase-LF.nex";
 protein_gtr.file_list = io.validate_a_list_of_files (protein_gtr.file_list);
 protein_gtr.file_list_count = Abs (protein_gtr.file_list);
@@ -77,8 +76,8 @@ protein_gtr.index_to_filename = utility.SwapKeysAndValues(protein_gtr.file_list)
 
 
 // Prompt for convergence assessment type
-//protein_gtr.convergence_type = io.SelectAnOption( protein_gtr.convergence_options, "Select a convergence criterion.");
-protein_gtr.convergence_type = "RMSE";
+protein_gtr.convergence_type = io.SelectAnOption( protein_gtr.convergence_options, "Select a convergence criterion.");
+//protein_gtr.convergence_type = "RMSE";
 
 // Prompt for threshold
 //protein_gtr.tolerance = io.PromptUser ("\n>Provide a tolerance level for convergence assessment (Default 0.01)",0.01,0,1,FALSE); // default, lower, upper, is_integer
@@ -87,12 +86,16 @@ protein_gtr.tolerance = 0.1;
 // Prompt for baseline AA model
 //protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
 //                                                "Select an empirical protein model to use for optimizing the provided branch lengths (we recommend LG):");
-protein_gtr.baseline_model = "LG";
+protein_gtr.baseline_model = "JTT";
 
 // Prompt for rate variation
-protein_gtr.use_rate_variation = io.SelectAnOption( protein_gtr.rate_variation_options, "Would you like to optimize branch lengths with rate variation?");
+//protein_gtr.use_rate_variation = io.SelectAnOption( protein_gtr.rate_variation_options, "Would you like to optimize branch lengths with rate variation?");
 
+protein_gtr.use_rate_variation = "Gamma";
 protein_gtr.save_options();
+
+protein_gtr.json_file = protein_gtr.listfile + "-" + protein_gtr.convergence_type + ".json";
+console.log(protein_gtr.json_file);
 
 
 if (protein_gtr.use_rate_variation == "Gamma"){
@@ -244,8 +247,6 @@ for (;;) {
 
     // Commented out below because this is never actually used in the analysis, and it is always cached anyways
     // protein_gtr.scores + protein_gtr.phase_results[terms.fit.log_likelihood];
-
-
     result_key = protein_gtr.rev_phase_prefix + protein_gtr.fit_phase;
     
     protein_gtr.startTimer (protein_gtr.timers, result_key);

@@ -87,10 +87,10 @@ protein_gtr.tolerance = 0.1;
 // Prompt for baseline AA model
 //protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
 //                                                "Select an empirical protein model to use for optimizing the provided branch lengths (we recommend LG):");
-protein_gtr.baseline_model = "LG";
+protein_gtr.baseline_model = "JTT";
 
 // Prompt for rate variation
-protein_gtr.use_rate_variation = io.SelectAnOption( protein_gtr.rate_variation_options, "Would you like to optimize branch lengths with rate variation?");
+protein_gtr.use_rate_variation = "Gamma"; //io.SelectAnOption( protein_gtr.rate_variation_options, "Would you like to optimize branch lengths with rate variation?");
 
 protein_gtr.save_options();
 
@@ -157,7 +157,7 @@ protein_gtr.fit_phase = 0;
 protein_gtr.scores = {};
 
 /*************************** STEP ONE ***************************
-Perform an initial fit of Baseline model+F(+/-4G) to the data (or load cached fit.)
+Perform an initial fit of Baseline model+F(+/-4G) to the data
 *****************************************************************/
 console.log("\n\n[PHASE 1] Performing initial branch length optimization using " + protein_gtr.baseline_model);
 

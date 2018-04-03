@@ -305,8 +305,9 @@ function protein_gtr.fitGTRtoFileList (current_results, previous_values, phase, 
         else {
             for (l1 = 0; l1 < 20; l1 += 1) {
                 for (l2 = l1 + 1; l2 < 20; l2 += 1) {
-                    (initial_values[terms.global]) [terms.aminoacidRate (models.protein.alphabet[l1],models.protein.alphabet[l2])] = {terms.fit.MLE : 0.1}; // set all to 1
-                }
+                    (initial_values[terms.global]) [terms.aminoacidRate (models.protein.alphabet[l1],models.protein.alphabet[l2])] =  {terms.MLE : 0.1};
+                   
+               }
             }
         }
         // fit the model
@@ -388,9 +389,10 @@ function protein_gtr.fitOnePass (current_results) {
     utility.ToggleEnvVariable ("OPTIMIZATION_METHOD", 0);
 
     
+    // start with JTT, for clean xrate comparison.
     for (l1 = 0; l1 < 20; l1 += 1) {
         for (l2 = l1 + 1; l2 < 20; l2 += 1) {
-            (initial_values[terms.global]) [terms.aminoacidRate (models.protein.alphabet[l1],models.protein.alphabet[l2])] = {terms.fit.MLE : 0.1}; // set all to 1
+            (initial_values[terms.global]) [terms.aminoacidRate (models.protein.alphabet[l1],models.protein.alphabet[l2])] = {terms.fit.MLE : (models.protein.JTT.Rij[models.protein.alphabet[l1]])[models.protein.alphabet[l2]]}; 
         }
     }
     protein_gtr.rev.mle = estimators.FitSingleModel_Ext (
@@ -478,7 +480,7 @@ function protein_gtr.UpdateBLWithREV (filename, rates, branch_lengths) {
     protein_gtr.rev_file_mle = estimators.FitSingleModel_Ext (
                                         utility.Map (protein_gtr.filter_specification, "_value_", "_value_[terms.data.name]"), // value => value['name']
                                         utility.Map (protein_gtr.partitions_and_trees, "_value_", "_value_[terms.data.tree]"), // value => value['tree']
-                                        protein_gtr.rev_model_intermediate, // pre-defined with or without gamma.
+                                        protein_gtr.rev_model_intermediate, 
                                         protein_gtr.rev_file_mle,
                                         None
                                    );
@@ -513,6 +515,7 @@ function protein_gtr.run_gtr_iteration_branch_lengths () {
                                             },
                                             "Variables" : {{
                                                 "protein_gtr.shared_EFV",
+                                                "protein_gtr.rev_model_final",
                                                 "protein_gtr.rev_model_intermediate",
                                                 "protein_gtr.filename_to_index",
                                                 "protein_gtr.phase_key"
