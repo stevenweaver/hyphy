@@ -619,6 +619,8 @@ function protein_gtr.extract_efv (results) {
         protein_gtr.fitted_efv[i] = ((results[terms.global])[efv_search])[terms.fit.MLE];
     
     }
+    norm =  +protein_gtr.fitted_efv;
+    protein_gtr.fitted_efv = protein_gtr.fitted_efv * (1/norm);
     return protein_gtr.fitted_efv
 }
 
