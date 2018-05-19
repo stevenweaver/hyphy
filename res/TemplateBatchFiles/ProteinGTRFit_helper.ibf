@@ -581,7 +581,7 @@ function protein_gtr.fitOnePass (current_results) {
                                         utility.Map (filter_info, "_value_", "_value_[terms.data.name]"),
                                         trees,
                                         protein_gtr.rev_model,
-                                        previous_values,
+                                        initial_values,
                                          {terms.run_options.retain_lf_object : TRUE}
                                    );
                                    
@@ -610,17 +610,24 @@ function protein_gtr.fitOnePass (current_results) {
 
 // From the fitted model results for a given PHASE, create EFV array which can be used for custom model 
 // NOTE: ASSUMES ML FREQUENCIES !!!!!
-function protein_gtr.extract_efv (results) {
+function protein_gtr.extract_efv (results, type) {
 
-    protein_gtr.fitted_efv = {protein_gtr.dim, 1};
-    for (i = 0; i < protein_gtr.dim; i+=1)
-    {
-        efv_search = terms.characterFrequency(protein_gtr.states[i]);  
-        protein_gtr.fitted_efv[i] = ((results[terms.global])[efv_search])[terms.fit.MLE];
     
+    
+    if (type == "ML"){
+        protein_gtr.fitted_efv = {protein_gtr.dim, 1};
+        for (i = 0; i < protein_gtr.dim; i+=1)
+        {
+            efv_search = terms.characterFrequency(protein_gtr.states[i]);  
+            protein_gtr.fitted_efv[i] = ((results[terms.global])[efv_search])[terms.fit.MLE];
+    
+        }
+        norm =  +protein_gtr.fitted_efv;
+        protein_gtr.fitted_efv = protein_gtr.fitted_efv * (1/norm);
     }
-    norm =  +protein_gtr.fitted_efv;
-    protein_gtr.fitted_efv = protein_gtr.fitted_efv * (1/norm);
+    if (type == "Emp") {
+        protein_gtr.fitted_efv = (results[utility.getGlobalValue("terms.efv_estimate")])["VALUEINDEXORDER"][0];
+    }
     return protein_gtr.fitted_efv
 }
 

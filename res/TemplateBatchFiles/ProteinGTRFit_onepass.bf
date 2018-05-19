@@ -26,7 +26,8 @@ utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1);
 
 //utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
 
-//utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.001);
+// default is 0.001. 
+utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1);
 
 protein_gtr.analysis_banner = {
     terms.io.info: "Fit a general time reversible model to a collection
@@ -78,13 +79,27 @@ protein_gtr.file_list_count = Abs (protein_gtr.file_list);
 protein_gtr.index_to_filename = utility.SwapKeysAndValues(protein_gtr.file_list);
 
 
-protein_gtr.baseline_model = "JTT";
+// Prompt for baseline AA model
+protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
+                                                "Select an empirical protein model to use for optimizing the provided branch lengths:");
+
+// Prompt for F model
+protein_gtr.frequency  = io.SelectAnOption ({{"Emp", "Empirical"}, {"ML", "Maximum likelihood"}},
+                                                "Select an frequency specification:");
+
 protein_gtr.use_rate_variation = "Gamma"; 
 protein_gtr.save_options();
 
 protein_gtr.baseline_model_name = protein_gtr.baseline_model + "+F, with 4 category Gamma rates";
 protein_gtr.baseline_model_desc = "protein_gtr.Baseline.ModelDescription.withGamma";
-protein_gtr.rev_model           = "models.protein.REVML.ModelDescription.withGamma";
+
+if (protein_gtr.frequency == "Emp"){
+    protein_gtr.rev_model           = "models.protein.REV.ModelDescription.withGamma";
+}
+if (protein_gtr.frequency == "ML"){
+    protein_gtr.rev_model           = "models.protein.REVML.ModelDescription.withGamma";
+}
+
 /********************************************************************************************************************/
 
 
@@ -153,7 +168,7 @@ io.ReportProgressMessageMD ("Protein GTR Fitter", " * Initial branch length fit"
 
 
 
-console.log("\n\n Optimizing model in full, single pass.");
+console.log("\n\n Optimizing model.");
 
 
 protein_gtr.startTimer (protein_gtr.timers, protein_gtr.final_phase);
@@ -163,6 +178,13 @@ protein_gtr.current_gtr_fit = protein_gtr.fitOnePass(current);
                                                             
                                                                                               
 protein_gtr.stopTimer (protein_gtr.timers, protein_gtr.final_phase);
+
+
+console.log(protein_gtr.current_gtr_fit)
+console.log();
+console.log((results[utility.getGlobalValue("terms.efv_estimate")])["VALUEINDEXORDER"][0]);
+
+exit();s
 
 
 /* save, write custom model */
