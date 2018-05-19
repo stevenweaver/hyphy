@@ -108,7 +108,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     if(${GCC_VERSION} VERSION_LESS 6.0)
       set(DEFAULT_COMPILE_FLAGS "-fsigned-char -O3 -std=gnu++14")
     else(${GCC_VERSION} VERSION_LESS 6.0)
-      set(DEFAULT_COMPILE_FLAGS "-fsigned-char -O3 -std=c++14")
+      set(DEFAULT_COMPILE_FLAGS "-fsigned-char -O3")
     endif(${GCC_VERSION} VERSION_LESS 6.0)
 
     if(NOAVX)
@@ -190,14 +190,22 @@ endif(NOT ${OPENMP_FOUND})
 #-------------------------------------------------------------------------------
 set(INSTALL_PREFIX /usr/local CACHE PATH "Installation prefix")
 set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE INTERNAL "Installation prefix" FORCE)
-set(DEFAULT_LIBRARIES dl pthread)
+if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+    set(DEFAULT_LIBRARIES pthread)
+else(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+    set(DEFAULT_LIBRARIES dl pthread)
+endif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
 
 #-------------------------------------------------------------------------------
 # LIBCurl support
 #-------------------------------------------------------------------------------
 find_package(CURL)
 if(${CURL_FOUND} AND NOT APPLE)
-    set(DEFAULT_LIBRARIES dl pthread crypto curl ssl)
+    if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+        set(DEFAULT_LIBRARIES pthread crypto curl ssl)
+    else(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
+        set(DEFAULT_LIBRARIES dl pthread crypto curl ssl)
+    endif(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
     add_definitions (-D__HYPHYCURL__)
 endif(${CURL_FOUND} AND NOT APPLE)
 
