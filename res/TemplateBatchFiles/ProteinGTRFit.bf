@@ -24,7 +24,7 @@ LoadFunctionLibrary("ProteinGTRFit_helper.ibf");
 utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 
-//utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
+utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 1); // Uncomment for testing to make it all run faster.
 // default here is 0.001. 
 
 
@@ -76,12 +76,12 @@ protein_gtr.index_to_filename = utility.SwapKeysAndValues(protein_gtr.file_list)
 
 
 // Prompt for convergence assessment type
-protein_gtr.convergence_type = io.SelectAnOption( protein_gtr.convergence_options, "Select a convergence criterion.");
-//protein_gtr.convergence_type = "RMSE";
+//protein_gtr.convergence_type = io.SelectAnOption( protein_gtr.convergence_options, "Select a convergence criterion.");
+protein_gtr.convergence_type = "RMSE";
 
 // Prompt for threshold
 //protein_gtr.tolerance = io.PromptUser ("\n>Provide a tolerance level for convergence assessment (Default 0.01)",0.01,0,1,FALSE); // default, lower, upper, is_integer
-protein_gtr.tolerance = 0.1;
+protein_gtr.tolerance = 1.;
 
 // Prompt for baseline AA model
 //protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
