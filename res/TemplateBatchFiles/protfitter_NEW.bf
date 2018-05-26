@@ -24,7 +24,7 @@ utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 
 // default is 0.001. NOTHING EVER CHANGES ANYMORE THOUGH??s
-utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.00001);
+//utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.01);
 
 protein_gtr.analysis_banner = {
     terms.io.info: "Fit a general time reversible model to a collection of training protein sequence alignments.",
