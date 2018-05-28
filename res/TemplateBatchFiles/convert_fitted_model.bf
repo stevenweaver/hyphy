@@ -8,6 +8,9 @@ LoadFunctionLibrary("libv3/models/protein.bf");
 
 convert_fitted_model.external_order       = {{"A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"}};
 convert_fitted_model.hyphy_order_dict = utility.MatrixToDict(models.protein.alphabet); 
+convert_fitted_model.paml = "PAML";
+convert_fitted_model.raxml = "RAXML";
+convert_fitted_model.all = "All";
 
 
 namespace convert_fitted_model {
@@ -15,29 +18,24 @@ namespace convert_fitted_model {
     LoadFunctionLibrary(custom_model_file); // custom_Rij; custom_EFV
 }
 
-convert_fitted_model.convert = io.SelectAnOption ({{"PAML", "PAML-format for use with IQTree, PhyML, PAML"},
-                                     {"RAxML", "RAxML-format for use with RAxML, ExaML"},
-                                     {"All", "Output both PAML- and RAxML-formatted models"}},
+convert_fitted_model.choice = io.SelectAnOption ({{convert_fitted_model.paml, "PAML-format for use with IQTree, PhyML, PAML"},
+                                     {convert_fitted_model.raxml, "RAxML-format for use with RAxML, ExaML"},
+                                     {convert_fitted_model.all, "Output both PAML- and RAxML-formatted models"}},
                                     "Select an output format:");
 
-if (convert_fitted_model.convert == "PAML")
+if (convert_fitted_model.choice == convert_fitted_model.paml)
 {
     convert_fitted_model.convert_to_paml();
 }
-if (convert_fitted_model.convert == "RAxML")
+if (convert_fitted_model.choice == convert_fitted_model.raxml)
 {
     convert_fitted_model.convert_to_raxml();
 }
-if (convert_fitted_model.convert == "All")
+if (convert_fitted_model.choice == convert_fitted_model.all)
 {
     convert_fitted_model.convert_to_raxml();
     convert_fitted_model.convert_to_paml();
 }
-
-
-
-
-
 
 
 function convert_fitted_model.convert_to_raxml(){
