@@ -38,7 +38,7 @@ prong.final_phase      = "GTR Fit";
 
 prong.options.frequency_type = "frequency estimation";
 prong.ml_freq                = "ML";
-prong.emp_freq               = "+F";
+prong.emp_freq               = "Emp";
 
 prong.single   = "Single";
 prong.multiple = "Multiple";
