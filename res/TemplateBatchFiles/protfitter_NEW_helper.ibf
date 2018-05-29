@@ -263,11 +263,10 @@ function protein_gtr.fitOnePass (current_results) {
     utility.ToggleEnvVariable ("AUTO_PARALLELIZE_OPTIMIZE", 1);
     utility.ToggleEnvVariable ("OPTIMIZATION_METHOD", 0);
 
-    // to do: clean hardcoding here!!!!!!!!
-    // start with JTT, for clean xrate comparison.
+
     for (l1 = 0; l1 < 20; l1 += 1) {
         for (l2 = l1 + 1; l2 < 20; l2 += 1) {
-            (initial_values[terms.global]) [terms.aminoacidRate (models.protein.alphabet[l1],models.protein.alphabet[l2])] = {terms.fit.MLE : (models.protein.JTT.Rij[models.protein.alphabet[l1]])[models.protein.alphabet[l2]]}; 
+            (initial_values[terms.global]) [terms.aminoacidRate (models.protein.alphabet[l1],models.protein.alphabet[l2])] = {terms.fit.MLE : (protein_gtr.initial_rates[models.protein.alphabet[l1]])[models.protein.alphabet[l2]]}; 
         }
     }
     protein_gtr.rev.mle = estimators.FitSingleModel_Ext (
@@ -307,7 +306,7 @@ function protein_gtr.fitOnePass (current_results) {
 
 // From the fitted model results for a given PHASE, create EFV array which can be used for custom model 
 function protein_gtr.extract_efv (results, frequency_type) {
-    if (frequency_type == "ML"){
+    if (protein_gtr.frequency == "ML"){
         protein_gtr.fitted_efv = {protein_gtr.dim, 1};
         for (i = 0; i < protein_gtr.dim; i+=1)
         {
@@ -318,7 +317,7 @@ function protein_gtr.extract_efv (results, frequency_type) {
         norm =  +protein_gtr.fitted_efv;
         protein_gtr.fitted_efv = protein_gtr.fitted_efv * (1/norm);
     }
-    if (frequency_type == "Emp") {
+    if (protein_gtr.frequency == "Emp") {
         protein_gtr.fitted_efv = (results[terms.efv_estimate])["VALUEINDEXORDER"][0];
     }
     //console.log((results[terms.efv_estimate])["VALUEINDEXORDER"][0]);
@@ -329,7 +328,7 @@ function protein_gtr.extract_efv (results, frequency_type) {
 
 
 
-// From the fitted model results for a given PHASE, create rate dictionary which can be used for custom model 
+// From the fitted model results and create rate dictionary which can be used for .fitted_model
 function protein_gtr.extract_rates (results) {
 
     protein_gtr.rij = {};
@@ -345,7 +344,128 @@ function protein_gtr.extract_rates (results) {
 }
 
 
+function protein_gtr.write_model_to_file() {
 
+    protein_gtr.external_order   = {{"A", "R", "N", "D", "C", "Q", "E", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"}};
+    protein_gtr.hyphy_order_dict = utility.MatrixToDict(models.protein.alphabet); 
+
+    if (protein_gtr.output_format == "HyPhy")
+    {
+        protein_gtr.save_hyphy_model();
+    }
+
+    if (protein_gtr.output_format == "PAML")
+    {
+        protein_gtr.save_paml_model();
+    }
+    if (protein_gtr.output_format == "RAxML")
+    {
+        protein_gtr.save_raxml_model();
+    }
+    if (protein_gtr.output_format == "All")
+    {
+        protein_gtr.save_raxml_model();
+        protein_gtr.save_paml_model();
+    }
+}
+
+
+function protein_gtr.save_hyphy_model(){
+    fprintf(protein_gtr.listfile + protein_gtr.hyphy_model_ext, CLEAR_FILE, "Rij = " + protein_gtr.final_rij + ";");
+    fprintf(protein_gtr.listfile + protein_gtr.hyphy_model_ext, "\n\n\n");
+    fprintf(protein_gtr.listfile + protein_gtr.hyphy_model_ext, "EFV = " + protein_gtr.final_efv + ";");
+}
+
+function protein_gtr.save_raxml_model(){
+
+    protein_gtr.raxml_output = "";
+    protein_gtr.paml_file = protein_gtr.listfile + protein_gtr.raxml_model_ext;
+    
+    for (i = 0; i < 20; i +=1)
+    {
+        for (j = 0; j < 20; j += 1)
+        {
+        
+            if (i == j)
+            {
+                protein_gtr.raxml_output += "0.0\n";
+            }
+            else
+            {
+                protein_gtr.aa1 = protein_gtr.external_order[i];
+                protein_gtr.aa2 = protein_gtr.external_order[j];
+        
+                if (protein_gtr.aa1 < protein_gtr.aa2)
+                {
+                    protein_gtr.rate = (protein_gtr.custom_Rij[protein_gtr.aa1])[protein_gtr.aa2];
+                }
+                else
+                {
+                    protein_gtr.rate = (protein_gtr.custom_Rij[protein_gtr.aa2])[protein_gtr.aa1];
+                }
+                protein_gtr.raxml_output += protein_gtr.rate;
+                protein_gtr.raxml_output += "\n"; //WTF WHY WONT YOU WORK
+            }
+        }    
+    }
+    for (i = 0; i < 20; i += 1)
+    {
+        protein_gtr.raxml_output += protein_gtr.custom_EFV[ protein_gtr.hyphy_order_dict[protein_gtr.external_order[i]] ];
+        // strip hack
+        if (i <= 18){
+            protein_gtr.raxml_output += "\n";
+        }
+    }
+
+    fprintf(protein_gtr.raxml_file, CLEAR_FILE, protein_gtr.raxml_output);
+}
+
+
+
+
+function protein_gtr.save_paml_model(){
+
+    protein_gtr.paml_output = "";
+    protein_gtr.paml_file = protein_gtr.listfile + protein_gtr.paml_model_ext;
+
+    for (i = 1; i < 20; i +=1)
+    {
+        protein_gtr.row = "";
+        for (j = 0; j < i; j += 1)
+        {
+        
+            protein_gtr.aa1 = protein_gtr.external_order[i];
+            protein_gtr.aa2 = protein_gtr.external_order[j];
+        
+            if (protein_gtr.aa1 < protein_gtr.aa2){
+                protein_gtr.rate = (protein_gtr.custom_Rij[protein_gtr.aa1])[protein_gtr.aa2];
+            }
+            else{
+                protein_gtr.rate = (protein_gtr.custom_Rij[protein_gtr.aa2])[protein_gtr.aa1];
+            }
+            
+            protein_gtr.row += protein_gtr.rate;
+            // strip hack
+            if (j != (i-1)){
+                protein_gtr.row += " ";
+            }
+        }
+    
+        protein_gtr.paml_output += protein_gtr.row + "\n";
+    }
+
+    protein_gtr.paml_output += "\n";
+    for (i = 0; i < 20; i += 1)
+    {
+        protein_gtr.paml_output += protein_gtr.custom_EFV[ protein_gtr.hyphy_order_dict[protein_gtr.external_order[i]] ];
+        // strip hack
+        if (i <= 18){
+            protein_gtr.paml_output += " ";
+        }
+    }
+    fprintf(protein_gtr.paml_file, CLEAR_FILE, protein_gtr.paml_output);
+}
+      
 
 
 

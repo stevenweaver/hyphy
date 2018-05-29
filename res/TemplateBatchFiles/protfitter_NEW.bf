@@ -23,8 +23,7 @@ LoadFunctionLibrary("protfitter_NEW_helper.ibf");
 utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 
-// default is 0.001. NOTHING EVER CHANGES ANYMORE THOUGH??s
-//utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.01);
+utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.1);
 
 protein_gtr.analysis_banner = {
     terms.io.info: "Fit a general time reversible model to a collection of training protein sequence alignments.",
@@ -43,6 +42,15 @@ protein_gtr.baseline_phase = "Baseline Phase";
 protein_gtr.final_phase    = "REV Phase";
 protein_gtr.options.frequency_type = "frequency estimation";
 protein_gtr.options.baseline_model   = "baseline model";
+
+protein_gtr.output_hyphy = "HyPhy";
+protein_gtr.output_paml  = "PAML";
+protein_gtr.output_raxml = "RAxML";
+protein_gtr.output_all   = "All";
+    
+protein_gtr.hyphy_model_ext = ".fitted_model";
+protein_gtr.paml_model_ext = ".paml";
+protein_gtr.raxml_model_ext = ".raxml";
 
 protein_gtr.analysis_results = {terms.json.analysis: protein_gtr.analysis_banner,
                                 terms.json.input: {},
@@ -63,7 +71,6 @@ fscanf (PROMPT_FOR_FILE, "Lines", protein_gtr.file_list);
 protein_gtr.listfile = utility.getGlobalValue("LAST_FILE_PATH");
 protein_gtr.json_file = protein_gtr.listfile  + ".json";
 protein_gtr.final_likelihood_function = protein_gtr.listfile  + "_Final-Phase-LF.nex";
-protein_gtr.model_file = protein_gtr.listfile  + ".fitted_model";
 protein_gtr.file_list = io.validate_a_list_of_files (protein_gtr.file_list);
 protein_gtr.file_list_count = Abs (protein_gtr.file_list);
 protein_gtr.index_to_filename = utility.SwapKeysAndValues(protein_gtr.file_list);
@@ -76,12 +83,22 @@ protein_gtr.baseline_model  = io.SelectAnOption (models.protein.empirical_models
 // Prompt for F inference //
 protein_gtr.frequency  = io.SelectAnOption ({{"Emp", "Empirical"}, {"ML", "Maximum likelihood"}},
                                                 "Select an frequency specification:");
+                     
+// Prompt for output format //
+protein_gtr.output_format  = io.SelectAnOption ({
+                                                  {protein_gtr.output_hyphy, "HyPhy-formatted model (extension `.fitted_model`)"},
+                                                  {protein_gtr.output_paml, "PAML-formatted model (extension `.paml`)"},
+                                                  {protein_gtr.output_raxml, "RAXML-formatted model (extension `.raxml`)"},
+                                                  {protein_gtr.output_all, "Output all file formats"}},
+                                                 "Select an output format for the fitted model:");
+                              
 
 protein_gtr.use_rate_variation = "Gamma"; 
 protein_gtr.save_options();
 
 protein_gtr.baseline_model_name = protein_gtr.baseline_model + "+F, with 4 category Gamma rates";
 protein_gtr.baseline_model_desc = "protein_gtr.Baseline.ModelDescription.withGamma";
+protein_gtr.initial_rates       = Eval("models.protein." + protein_gtr.baseline_model + ".Rij");
 
 if (protein_gtr.frequency == "Emp"){
     protein_gtr.rev_model = "models.protein.REV.ModelDescription.withGamma";
@@ -89,6 +106,8 @@ if (protein_gtr.frequency == "Emp"){
 if (protein_gtr.frequency == "ML"){
     protein_gtr.rev_model = "models.protein.REVML.ModelDescription.withGamma";
 }
+
+
 
 /********************************************************************************************************************/
 
@@ -166,10 +185,16 @@ protein_gtr.current_gtr_fit = protein_gtr.fitOnePass(current);
 protein_gtr.stopTimer (protein_gtr.timers, protein_gtr.final_phase);
 
 /* save, write custom model */
-fprintf(protein_gtr.model_file, "custom_Rij = " + protein_gtr.extract_rates(protein_gtr.current_gtr_fit) + ";");
+protein_gtr.final_rij = protein_gtr.extract_rates(protein_gtr.current_gtr_fit);
+protein_gtr.final_efv = protein_gtr.extract_efv(protein_gtr.current_gtr_fit, protein_gtr.frequencies);
+
+protein_gtr.write_model_to_file();
+
+
+/*fprintf(protein_gtr.model_file, "custom_Rij = " + protein_gtr.extract_rates(protein_gtr.current_gtr_fit) + ";");
 fprintf(protein_gtr.model_file, "\n\n\n");
 fprintf(protein_gtr.model_file, "custom_EFV = " + protein_gtr.extract_efv(protein_gtr.current_gtr_fit, protein_gtr.frequencies) + ";");
-
+*/
 
 /* Save the JSON */
 protein_gtr.stopTimer (protein_gtr.timers, "Total time");
