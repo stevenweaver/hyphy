@@ -24,7 +24,7 @@ utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 //utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.1);
 prong.analysis_banner = {
-    terms.io.info: "PronG, `PROteiN GTR fitter`: Fit a general time reversible (GTR) model to a collection of training protein sequence alignments.",
+    terms.io.info: "PronG, PROteiN GTR fitter: Fit a general time reversible (GTR) model to a collection of training protein sequence alignments.",
     terms.io.version: "0.01",
     terms.io.reference: "TBD",
     terms.io.authors: "Sergei L Kosakovsky Pond and Stephanie J Spielman",
