@@ -192,7 +192,7 @@ function prong.fitGTR (current_results) {
         (initial_values[terms.branch_length])[file_index] = ((current_results[file_index])[terms.branch_length])[0];
     }
 
-    utility.SetEnvVariable ("VERBOSITY_LEVEL", 1);
+    //utility.SetEnvVariable ("VERBOSITY_LEVEL", 1);
     utility.ToggleEnvVariable ("AUTO_PARALLELIZE_OPTIMIZE", 1);
     utility.ToggleEnvVariable ("OPTIMIZATION_METHOD", 0);
 
@@ -222,7 +222,7 @@ function prong.fitGTR (current_results) {
     (^"prong.analysis_results")[prong.final_phase] = prong.rev_mle;
 
     console.log (""); // clear past the optimization progress line
-    utility.SetEnvVariable ("VERBOSITY_LEVEL", 0);
+    //utility.SetEnvVariable ("VERBOSITY_LEVEL", 0);
     utility.ToggleEnvVariable ("AUTO_PARALLELIZE_OPTIMIZE", None);
     utility.ToggleEnvVariable ("OPTIMIZATION_METHOD", None);
 
