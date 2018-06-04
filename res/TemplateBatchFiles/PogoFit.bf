@@ -23,6 +23,7 @@ LoadFunctionLibrary("PogoFit_helper.ibf"); // Functions, model definitions used 
 utility.ToggleEnvVariable ("NORMALIZE_SEQUENCE_NAMES", 1);
 //utility.ToggleEnvVariable ("PRODUCE_OPTIMIZATION_LOG", 1); 
 //utility.ToggleEnvVariable ("OPTIMIZATION_PRECISION", 0.1);
+
 pogofit.analysis_banner = {
     terms.io.info: "PogoFit, *P*rotein *G*TR *Fit*ter: Fit a general time reversible (GTR) model to a collection of training protein sequence alignments.",
     terms.io.version: "0.01",
@@ -45,21 +46,18 @@ pogofit.multiple = "Multiple";
 
 pogofit.options.baseline_model   = "baseline model";
 
-pogofit.output_hyphy = "HyPhy";
-pogofit.output_paml  = "PAML";
-pogofit.output_raxml = "RAxML";
-pogofit.output_all   = "All";
-pogofit.hyphy_model_ext = ".fitted_model";
-pogofit.paml_model_ext  = ".paml";
-pogofit.raxml_model_ext = ".raxml";
+pogofit.output_hyphy    = "HyPhy";
+pogofit.output_paml     = "PAML";
+pogofit.output_raxml    = "RAxML";
+pogofit.output_all      = "All";
+pogofit.hyphy_model_ext = ".POGOFIT.fitted_model";
+pogofit.paml_model_ext  = ".POGOFIT.paml";
+pogofit.raxml_model_ext = ".POGOFIT.raxml";
 
 pogofit.analysis_results = {terms.json.analysis: pogofit.analysis_banner,
                                 terms.json.input: {},
                                 terms.json.timers: {}};
 pogofit.timers = {};
-
-
-
 
 /********************************************** MENU PROMPTS ********************************************************/
 /********************************************************************************************************************/
@@ -68,16 +66,13 @@ pogofit.timers = {};
 // Prompt for number of files to analyze, and read file list accordingly //
 pogofit.one_or_many  = io.SelectAnOption ({{pogofit.multiple, "Infer a protein model from multiple training datasets (this is more common)."}, 
                                                {pogofit.single, "Infer a protein model from a single training datasets."}}, 
-                                                "How many datasets will be used to fit the protein model?");
-pogofit.listfile = "";                                     
+                                                "How many datasets will be used to fit the protein model?");                                    
 if (pogofit.one_or_many == pogofit.single)
 {
     pogofit.alignment_file = io.PromptUserForString ("Provide the filename of the alignment to analyze");
-    pogofit.listfile            = pogofit.alignment_file + ".list";
-    fprintf(pogofit.listfile, CLEAR_FILE, pogofit.alignment_file);
     pogofit.file_list           = {{pogofit.alignment_file}};
     pogofit.output_model_prefix = pogofit.alignment_file;
-    pogofit.json_file           = pogofit.alignment_file  + ".json";
+    pogofit.json_file           = pogofit.alignment_file  + ".POGOFIT.json";
 
 }
 
@@ -87,7 +82,7 @@ if (pogofit.one_or_many == pogofit.multiple)
     fscanf (PROMPT_FOR_FILE, "Lines", pogofit.file_list);
     pogofit.listfile            = utility.getGlobalValue("LAST_FILE_PATH");
     pogofit.output_model_prefix = pogofit.listfile;
-    pogofit.json_file           = pogofit.listfile  + ".json";
+    pogofit.json_file           = pogofit.listfile  + ".POGOFIT.json";
 }
 
 pogofit.file_list         = io.validate_a_list_of_files (pogofit.file_list);
