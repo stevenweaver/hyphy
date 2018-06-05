@@ -71,8 +71,6 @@ if (pogofit.one_or_many == pogofit.single)
 {
     pogofit.input_file = io.PromptUserForString ("Provide the filename of the alignment to analyze");
     pogofit.file_list           = {{pogofit.input_file}};
-    pogofit.output_model_prefix = pogofit.input_file;
-    pogofit.json_file           = pogofit.input_file  + ".POGOFIT.json";
 }
 
 if (pogofit.one_or_many == pogofit.multiple)
