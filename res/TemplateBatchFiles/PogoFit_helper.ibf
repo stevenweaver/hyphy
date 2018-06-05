@@ -247,7 +247,7 @@ function pogofit.save_options() {
     pogofit.analysis_results[utility.getGlobalValue("terms.json.options")] = {utility.getGlobalValue("pogofit.options.frequency_type"): pogofit.frequency,
                                                                                   utility.getGlobalValue("pogofit.options.baseline_model"): pogofit.baseline_model};
 
-    pogofit.analysis_results[utility.getGlobalValue("terms.json.input")] = {utility.getGlobalValue("terms.json.file"): pogofit.listfile,
+    pogofit.analysis_results[utility.getGlobalValue("terms.json.input")] = {utility.getGlobalValue("terms.json.file"): pogofit.input_file,
                                                                                 "number of datasets": pogofit.file_list_count};
 
     /* Temporarily, we save input file information here in a highly redundant fashion, but doesn't seem possible to do in MPI...? */

@@ -69,25 +69,24 @@ pogofit.one_or_many  = io.SelectAnOption ({{pogofit.multiple, "Infer a protein m
                                                 "How many datasets will be used to fit the protein model?");                                    
 if (pogofit.one_or_many == pogofit.single)
 {
-    pogofit.alignment_file = io.PromptUserForString ("Provide the filename of the alignment to analyze");
-    pogofit.file_list           = {{pogofit.alignment_file}};
-    pogofit.output_model_prefix = pogofit.alignment_file;
-    pogofit.json_file           = pogofit.alignment_file  + ".POGOFIT.json";
-
+    pogofit.input_file = io.PromptUserForString ("Provide the filename of the alignment to analyze");
+    pogofit.file_list           = {{pogofit.input_file}};
+    pogofit.output_model_prefix = pogofit.input_file;
+    pogofit.json_file           = pogofit.input_file  + ".POGOFIT.json";
 }
 
 if (pogofit.one_or_many == pogofit.multiple)
 {
     SetDialogPrompt ("Supply a list of files to include in the analysis (one per line)");
     fscanf (PROMPT_FOR_FILE, "Lines", pogofit.file_list);
-    pogofit.listfile            = utility.getGlobalValue("LAST_FILE_PATH");
-    pogofit.output_model_prefix = pogofit.listfile;
-    pogofit.json_file           = pogofit.listfile  + ".POGOFIT.json";
+    pogofit.input_file  = utility.getGlobalValue("LAST_FILE_PATH");
 }
 
-pogofit.file_list         = io.validate_a_list_of_files (pogofit.file_list);
-pogofit.file_list_count   = Abs (pogofit.file_list);
-pogofit.index_to_filename = utility.SwapKeysAndValues(pogofit.file_list);
+pogofit.output_model_prefix = pogofit.input_file;
+pogofit.json_file           = pogofit.input_file  + ".POGOFIT.json";
+pogofit.file_list           = io.validate_a_list_of_files (pogofit.file_list);
+pogofit.file_list_count     = Abs (pogofit.file_list);
+pogofit.index_to_filename   = utility.SwapKeysAndValues(pogofit.file_list);
 
 // Prompt for baseline AA model //
 pogofit.baseline_model  = io.SelectAnOption (models.protein.empirical_models,
