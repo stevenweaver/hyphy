@@ -3869,7 +3869,7 @@ void    _Matrix::Multiply  (_Matrix& storage, _Matrix& secondArg)
 #if GCC_VERSION > 40400
 #pragma omp parallel for default(none) shared(r,secondArg,storage) schedule(static) if (nt>1)  num_threads (nt)
 #else
-#pragma omp parallel for default(none) shared(r) schedule(static) if (nt>1)  num_threads (nt)
+#pragma omp parallel for default(none) shared(r,secondArg,storage) schedule(static) if (nt>1)  num_threads (nt)
 #endif
 #endif
                          for (long c = 0; c < secondArg.vDim; c+= _HY_MATRIX_CACHE_BLOCK) {

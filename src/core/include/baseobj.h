@@ -61,7 +61,7 @@ typedef char* Ptr;
 #endif
 
 #ifdef __GNUC__
-#define _hprestrict_ __restrict
+#define _hprestrict_
 #else
 #define _hprestrict_
 #endif
