@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  wasi-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    volumes:
+      - ../../:/hyphy
+    working_dir: /hyphy
+    command: bash
+    tty: true
+    stdin_open: true
