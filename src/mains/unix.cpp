@@ -34,6 +34,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "function_templates.h"
 #include "trie_iterator.h"
 
+#ifdef _USE_WASI_
+#include "wasi_threading.h"
+#endif
+
 using namespace hy_global;
 
 #include "batchlan.h"
@@ -640,6 +644,13 @@ void    SetStatusLineUser   (_String const s) {
 #ifndef __UNITTEST__
 int main (int argc, char* argv[]) {
     
+#ifdef _USE_WASI_
+    // Initialize WASI threading subsystem
+    if (!wasi_threading::initialize()) {
+        fprintf(stderr, "Failed to initialize WASI threading\n");
+        return 1;
+    }
+#endif
     
 #ifdef _COMPARATIVE_LF_DEBUG_DUMP
     FILE * comparative_lf_debug_matrix_content_file = doFileOpen (_COMPARATIVE_LF_DEBUG_DUMP, "w");
@@ -1016,6 +1027,10 @@ int main (int argc, char* argv[]) {
     
     GlobalShutdown              ();
     
+#ifdef _USE_WASI_
+    // Clean up WASI threading subsystem
+    wasi_threading::shutdown();
+#endif
     
     fflush (stdout);
     

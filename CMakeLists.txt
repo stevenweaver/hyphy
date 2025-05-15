@@ -28,6 +28,30 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
    add_definitions (-D_USE_EMSCRIPTEN_)
  endif()
 
+# WASI support with threading
+if(CMAKE_SYSTEM_NAME STREQUAL "WASI")
+   set(NOAVX ON)
+   set(NONEON ON)
+   set(NOZLIB ON)
+   set(LIBRARY_PATH "/hyphy")
+   add_definitions(-D_USE_WASI_)
+   
+   # WASI threading requires these flags
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+   
+   # Handle architecture-specific flags
+   if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+     # ARM-specific WASI flags
+     message(STATUS "Configuring for ARM architecture with WASI")
+     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -Wl,--import-memory,--export-memory,--shared-memory,--max-memory=1073741824")
+   else()
+     # x86_64 or other architectures
+     message(STATUS "Configuring for x86_64 or other architecture with WASI")
+     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -Wl,--import-memory,--export-memory,--shared-memory,--max-memory=1073741824")
+   endif()
+endif()
+
 #-------------------------------------------------------------------------------
 # SSE MACROS
 #-------------------------------------------------------------------------------
@@ -330,10 +354,16 @@ find_package(BLAS)
 #-------------------------------------------------------------------------------
 # OpenMP support
 #-------------------------------------------------------------------------------
-find_package(OpenMP)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+  find_package(OpenMP)
+else()
+  # WASI doesn't currently support OpenMP, so disable it
+  set(OPENMP_FOUND FALSE)
+  set(OpenMP_CXX_FLAGS "")
+  message("OpenMP support disabled for WASI target")
+endif()
 
 # emulate missing OpenMP for testing
-
 #set (OPENMP_FOUND FALSE)
 #set (OpenMP_CXX_FLAGS "")
 

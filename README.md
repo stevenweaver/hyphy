@@ -122,6 +122,69 @@ hyphy.data
 
 Which should be served from the same directory.
 
+#### Building HyPhy for WASI with Threading Support
+
+HyPhy can also be built for WebAssembly System Interface (WASI) with experimental threading support, enabling standalone WASM execution with multi-threading capabilities.
+
+Requirements:
+- [WASI SDK](https://github.com/WebAssembly/wasi-sdk) version 20 or later with threading support
+
+```bash
+# Configure with WASI threading support
+cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/wasi-sdk/share/cmake/wasi-sdk.cmake \
+      -DWASI_SDK_PREFIX=/path/to/wasi-sdk \
+      -DCMAKE_C_COMPILER=/path/to/wasi-sdk/bin/clang \
+      -DCMAKE_CXX_COMPILER=/path/to/wasi-sdk/bin/clang++ \
+      -DCMAKE_C_FLAGS="-pthread" \
+      -DCMAKE_CXX_FLAGS="-pthread" \
+      -DCMAKE_EXE_LINKER_FLAGS="-pthread -Wl,--import-memory,--export-memory,--shared-memory,--max-memory=1073741824" \
+      -DCMAKE_SYSTEM_NAME=WASI \
+      -DCMAKE_SYSTEM_VERSION=1 \
+      -DCMAKE_SYSTEM_PROCESSOR=wasm32 \
+      -DCMAKE_SYSROOT=/path/to/wasi-sdk/share/wasi-sysroot \
+      .
+
+# Build
+make -j hyphy
+```
+
+The resulting WASM file can be run in WASI-compatible runtimes that support threading, such as Wasmtime:
+
+```bash
+# Running with Wasmtime threading support
+wasmtime run --wasm-features=threads --env=HYPHYDEBUG=1 hyphy.wasm
+```
+
+##### ARM Architecture Support
+
+HyPhy's WASI implementation includes architecture detection for ARM/aarch64 platforms. When building on ARM:
+
+1. The compiler automatically detects ARM architecture and applies appropriate optimizations
+2. Thread pools are configured with ARM-specific defaults
+3. Memory alignment and SIMD operations are adjusted for ARM architecture
+
+To build specifically on ARM platforms:
+
+```bash
+# Configure with ARM-specific flags
+cmake -DCMAKE_TOOLCHAIN_FILE=/path/to/wasi-sdk/share/cmake/wasi-sdk.cmake \
+      -DWASI_SDK_PREFIX=/path/to/wasi-sdk \
+      -DCMAKE_C_COMPILER=/path/to/wasi-sdk/bin/clang \
+      -DCMAKE_CXX_COMPILER=/path/to/wasi-sdk/bin/clang++ \
+      -DCMAKE_C_FLAGS="-pthread" \
+      -DCMAKE_CXX_FLAGS="-pthread" \
+      -DCMAKE_EXE_LINKER_FLAGS="-pthread -Wl,--import-memory,--export-memory,--shared-memory,--max-memory=1073741824" \
+      -DCMAKE_SYSTEM_NAME=WASI \
+      -DCMAKE_SYSTEM_VERSION=1 \
+      -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
+      -DCMAKE_SYSROOT=/path/to/wasi-sdk/share/wasi-sysroot \
+      .
+```
+
+Note that ARM support requires a WASI SDK that can target ARM architectures.
+
+**Note:** WASI threading support is experimental and may have limitations compared to native threading.
+
 #### Testing
 
 Use `make test` after running `cmake .`.

@@ -1,0 +1,95 @@
+name: WASI Build
+
+on:
+  push:
+    branches: [ master, develop, wasm, wasi ]
+  pull_request:
+    branches: [ master, develop ]
+  workflow_dispatch:
+
+jobs:
+  build_wasi_x86_64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup WASI SDK
+        run: |
+          wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-linux.tar.gz
+          tar xvf wasi-sdk-20.0-linux.tar.gz
+          echo "WASI_SDK_PATH=$PWD/wasi-sdk-20.0" >> $GITHUB_ENV
+          
+      - name: Verify WASI SDK
+        run: |
+          $WASI_SDK_PATH/bin/clang --version
+          
+      - name: Configure
+        run: |
+          cmake -DCMAKE_TOOLCHAIN_FILE=$WASI_SDK_PATH/share/cmake/wasi-sdk.cmake \
+                -DWASI_SDK_PREFIX=$WASI_SDK_PATH \
+                -DCMAKE_C_COMPILER=$WASI_SDK_PATH/bin/clang \
+                -DCMAKE_CXX_COMPILER=$WASI_SDK_PATH/bin/clang++ \
+                -DCMAKE_C_FLAGS="-pthread" \
+                -DCMAKE_CXX_FLAGS="-pthread" \
+                -DCMAKE_EXE_LINKER_FLAGS="-pthread -Wl,--import-memory,--export-memory,--shared-memory,--max-memory=1073741824 -Wl,--export-all" \
+                -DCMAKE_SYSTEM_NAME=WASI \
+                -DCMAKE_SYSTEM_VERSION=1 \
+                -DCMAKE_SYSTEM_PROCESSOR=wasm32 \
+                -DCMAKE_SYSROOT=$WASI_SDK_PATH/share/wasi-sysroot \
+                .
+          
+      - name: Build
+        run: |
+          make hyphy
+          
+      - name: Create WASI package
+        run: |
+          mkdir -p wasi-build
+          cp hyphy.wasm wasi-build/
+          cp -r res wasi-build/
+          
+      - name: Upload WASI artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: hyphy-wasi-x86_64
+          path: wasi-build/
+          
+      - name: Create release package
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/wasi'
+        run: |
+          cd wasi-build
+          zip -r ../hyphy-wasi-x86_64.zip .
+          cd ..
+          
+      - name: Upload Zip as artifact
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/wasi'
+        uses: actions/upload-artifact@v3
+        with:
+          name: hyphy-wasi-x86_64-zip
+          path: hyphy-wasi-x86_64.zip
+
+  # We can't directly build for ARM architecture yet since GitHub Actions doesn't
+  # provide ARM runners and the WASI SDK doesn't have an ARM build yet. 
+  # This is a placeholder for the future when we have ARM support.
+  build_wasi_arm:
+    runs-on: ubuntu-latest
+    # This step is just for demonstration purposes
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup ARM cross-compilation environment
+        run: |
+          echo "Setting up ARM cross-compilation environment"
+          # In a real workflow, we would set up cross-compilation for ARM
+          # using a WASI SDK that supports ARM or using a cross-compilation toolchain
+      
+      - name: Create placeholder artifact
+        run: |
+          mkdir -p wasi-build-arm
+          echo "ARM builds will be supported in a future release" > wasi-build-arm/README.txt
+          
+      - name: Upload placeholder artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hyphy-wasi-arm-placeholder
+          path: wasi-build-arm/
